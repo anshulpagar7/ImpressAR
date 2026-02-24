@@ -1,8 +1,14 @@
-<video id="video" autoplay></video>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none;"></canvas>
+<p id="feedback"></p>
 
 <script>
 const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const feedbackText = document.getElementById('feedback');
+const context = canvas.getContext('2d');
 
+// Start webcam
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
     video.srcObject = stream;
@@ -10,4 +16,25 @@ navigator.mediaDevices.getUserMedia({ video: true })
   .catch(err => {
     console.error("Error accessing webcam:", err);
   });
+
+// Send frames to backend
+setInterval(() => {
+    if (!video.videoWidth) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+
+    const imageData = canvas.toDataURL('image/jpeg');
+
+    fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        feedbackText.innerText = data.feedback;
+    });
+}, 800);
 </script>
