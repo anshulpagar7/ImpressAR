@@ -1,0 +1,13 @@
+<video id="video" autoplay></video>
+
+<script>
+const video = document.getElementById('video');
+
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => {
+    video.srcObject = stream;
+  })
+  .catch(err => {
+    console.error("Error accessing webcam:", err);
+  });
+</script>
