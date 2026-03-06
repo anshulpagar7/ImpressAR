@@ -58,6 +58,8 @@ cursor:pointer;
 border:none;
 border-radius:6px;
 background:#22c55e;
+color:black;
+font-weight:bold;
 }
 
 .progress{
@@ -72,6 +74,7 @@ height:20px;
 background:#22c55e;
 width:0%;
 border-radius:5px;
+transition:width 0.4s;
 }
 
 #chart{
@@ -111,7 +114,7 @@ margin-top:20px;
 
 <h3>Timer</h3>
 
-<h2 id="timer">--</h2>
+<h2 id="timer">180</h2>
 
 </div>
 
@@ -124,7 +127,7 @@ margin-top:20px;
 <div id="bar" class="progress-bar"></div>
 </div>
 
-<p id="score"></p>
+<p id="score">Score: 70</p>
 
 </div>
 
@@ -133,7 +136,7 @@ margin-top:20px;
 
 <h3>Feedback</h3>
 
-<p id="feedback"></p>
+<p id="feedback">Waiting for interview to start</p>
 
 </div>
 
@@ -165,6 +168,7 @@ let questions=[]
 let qIndex=0
 let interviewActive=false
 let timeLeft=180
+let timerInterval=null
 
 const video=document.getElementById("video")
 const canvas=document.getElementById("hidden")
@@ -176,11 +180,17 @@ const feedbackText=document.getElementById("feedback")
 const scoreText=document.getElementById("score")
 const bar=document.getElementById("bar")
 
+// start webcam
+
 navigator.mediaDevices.getUserMedia({video:true})
 .then(stream=>video.srcObject=stream)
 
 
+// start interview
+
 function startInterview(){
+
+if(timerInterval) clearInterval(timerInterval)
 
 fetch("/questions")
 .then(r=>r.json())
@@ -196,14 +206,14 @@ questionText.innerText=questions[qIndex]
 interviewActive=true
 timeLeft=180
 
-const timer=setInterval(()=>{
+timerInterval=setInterval(()=>{
 
 if(!interviewActive) return
 
 if(timeLeft<=0){
 
+clearInterval(timerInterval)
 finishInterview()
-clearInterval(timer)
 return
 
 }
@@ -216,12 +226,13 @@ timeLeft--
 }
 
 
+// next question
+
 function nextQuestion(){
 
 if(qIndex < questions.length-1){
 
 qIndex++
-
 questionText.innerText=questions[qIndex]
 
 }
@@ -229,9 +240,13 @@ questionText.innerText=questions[qIndex]
 }
 
 
+// finish interview
+
 function finishInterview(){
 
 interviewActive=false
+
+if(timerInterval) clearInterval(timerInterval)
 
 fetch("/report")
 .then(r=>r.json())
@@ -246,6 +261,8 @@ drawChart(data.trend)
 }
 
 
+// chart
+
 function drawChart(scores){
 
 new Chart(document.getElementById("chart"),{
@@ -255,8 +272,10 @@ type:"line",
 data:{
 labels:scores.map((_,i)=>i+1),
 datasets:[{
-label:"Confidence",
-data:scores
+label:"Confidence Trend",
+data:scores,
+borderColor:"#22c55e",
+tension:0.3
 }]
 }
 
@@ -264,6 +283,8 @@ data:scores
 
 }
 
+
+// frame analysis loop
 
 setInterval(()=>{
 
@@ -290,6 +311,7 @@ body:JSON.stringify({image:img})
 .then(data=>{
 
 feedbackText.innerText=data.feedback
+
 scoreText.innerText="Score: "+data.score
 
 bar.style.width=data.score+"%"
