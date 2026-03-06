@@ -81,6 +81,12 @@ transition:width 0.4s;
 margin-top:20px;
 }
 
+#progressTracker{
+margin-top:10px;
+font-size:16px;
+color:#22c55e;
+}
+
 </style>
 
 </head>
@@ -106,6 +112,8 @@ margin-top:20px;
 <h3>Question</h3>
 
 <p id="question">Press Start Interview</p>
+
+<p id="progressTracker"></p>
 
 </div>
 
@@ -164,53 +172,66 @@ margin-top:20px;
 
 <script>
 
-let questions=[]
-let qIndex=0
-let interviewActive=false
-let timeLeft=180
-let timerInterval=null
+// ---------------- VARIABLES ----------------
 
-const video=document.getElementById("video")
-const canvas=document.getElementById("hidden")
-const ctx=canvas.getContext("2d")
+let questions = []
+let qIndex = 0
 
-const questionText=document.getElementById("question")
-const timerText=document.getElementById("timer")
-const feedbackText=document.getElementById("feedback")
-const scoreText=document.getElementById("score")
-const bar=document.getElementById("bar")
+let interviewActive = false
 
-// start webcam
+let timeLeft = 180
+let timerInterval = null
 
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>video.srcObject=stream)
+let chartInstance = null
+
+const video = document.getElementById("video")
+const canvas = document.getElementById("hidden")
+const ctx = canvas.getContext("2d")
+
+const questionText = document.getElementById("question")
+const timerText = document.getElementById("timer")
+const feedbackText = document.getElementById("feedback")
+const scoreText = document.getElementById("score")
+const bar = document.getElementById("bar")
+const progressTracker = document.getElementById("progressTracker")
 
 
-// start interview
+// ---------------- WEBCAM ----------------
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    video.srcObject = stream
+})
+
+
+// ---------------- START INTERVIEW ----------------
 
 function startInterview(){
 
 if(timerInterval) clearInterval(timerInterval)
 
 fetch("/questions")
-.then(r=>r.json())
-.then(data=>{
+.then(res => res.json())
+.then(data => {
 
-questions=data.questions
-qIndex=0
+questions = data.questions
+qIndex = 0
 
-questionText.innerText=questions[qIndex]
+questionText.innerText = questions[qIndex]
+
+progressTracker.innerText =
+"Question " + (qIndex+1) + " / " + questions.length
 
 })
 
-interviewActive=true
-timeLeft=180
+interviewActive = true
+timeLeft = 180
 
-timerInterval=setInterval(()=>{
+timerInterval = setInterval(()=>{
 
 if(!interviewActive) return
 
-if(timeLeft<=0){
+if(timeLeft <= 0){
 
 clearInterval(timerInterval)
 finishInterview()
@@ -218,7 +239,7 @@ return
 
 }
 
-timerText.innerText=timeLeft+" seconds"
+timerText.innerText = timeLeft + " seconds"
 timeLeft--
 
 },1000)
@@ -226,57 +247,129 @@ timeLeft--
 }
 
 
-// next question
+// ---------------- NEXT QUESTION ----------------
 
 function nextQuestion(){
 
-if(qIndex < questions.length-1){
+if(!interviewActive) return
+
+if(qIndex < questions.length - 1){
 
 qIndex++
-questionText.innerText=questions[qIndex]
+
+questionText.innerText = questions[qIndex]
+
+progressTracker.innerText =
+"Question " + (qIndex+1) + " / " + questions.length
 
 }
 
 }
 
 
-// finish interview
+// ---------------- FINISH INTERVIEW ----------------
 
 function finishInterview(){
 
-interviewActive=false
+interviewActive = false
 
 if(timerInterval) clearInterval(timerInterval)
 
 fetch("/report")
-.then(r=>r.json())
-.then(data=>{
+.then(res => res.json())
+.then(data => {
 
-scoreText.innerText="Average Score: "+data.average_score
+questionText.innerText =
+"🎉 Hurray! You completed the interview!"
+
+progressTracker.innerText = "Interview Completed"
+
+
+feedbackText.innerHTML =
+
+`
+<h2>Interview Report</h2>
+
+<p><b>Overall Confidence Score:</b> ${data.average_score}</p>
+
+<p><b>Posture Stability:</b> ${data.posture_score}%</p>
+
+<p><b>Eye Contact:</b> ${data.eye_score}%</p>
+
+<p><b>Fidget Level:</b> ${data.fidget_ratio}%</p>
+
+<p><b>Movement Intensity:</b> ${data.movement}</p>
+
+<h3>AI Suggestions</h3>
+
+<ul>
+${data.suggestions.map(s=>`<li>${s}</li>`).join("")}
+</ul>
+`
+
+scoreText.innerText = "Interview Completed"
+
+bar.style.width = data.average_score + "%"
 
 drawChart(data.trend)
 
 })
 
+.catch(err => {
+console.error("Report error:", err)
+})
+
 }
 
 
-// chart
+// ---------------- DRAW CHART ----------------
 
 function drawChart(scores){
 
-new Chart(document.getElementById("chart"),{
+const ctxChart = document.getElementById("chart").getContext("2d")
 
-type:"line",
+// destroy previous chart if exists
+if(chartInstance){
+chartInstance.destroy()
+}
 
-data:{
-labels:scores.map((_,i)=>i+1),
-datasets:[{
-label:"Confidence Trend",
-data:scores,
-borderColor:"#22c55e",
-tension:0.3
+chartInstance = new Chart(ctxChart, {
+
+type: "line",
+
+data: {
+
+labels: scores.map((_,i)=>i+1),
+
+datasets: [{
+
+label: "Confidence Trend",
+
+data: scores,
+
+borderColor: "#22c55e",
+
+backgroundColor: "rgba(34,197,94,0.2)",
+
+fill: true,
+
+tension: 0.4
+
 }]
+
+},
+
+options: {
+
+responsive: true,
+
+scales: {
+y: {
+min: 0,
+max: 100
+}
+}
+
 }
 
 })
@@ -284,39 +377,47 @@ tension:0.3
 }
 
 
-// frame analysis loop
+// ---------------- FRAME ANALYSIS LOOP ----------------
 
 setInterval(()=>{
 
 if(!interviewActive) return
 if(!video.videoWidth) return
 
-canvas.width=video.videoWidth
-canvas.height=video.videoHeight
+canvas.width = video.videoWidth
+canvas.height = video.videoHeight
 
 ctx.drawImage(video,0,0)
 
-const img=canvas.toDataURL("image/jpeg")
+const img = canvas.toDataURL("image/jpeg")
 
-fetch("/analyze",{
+fetch("/analyze", {
 
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({image:img})
+method: "POST",
+
+headers: {
+"Content-Type": "application/json"
+},
+
+body: JSON.stringify({
+image: img
+})
 
 })
 
-.then(r=>r.json())
+.then(res => res.json())
 
-.then(data=>{
+.then(data => {
 
-feedbackText.innerText=data.feedback
+feedbackText.innerText = data.feedback
 
-scoreText.innerText="Score: "+data.score
+scoreText.innerText = "Score: " + data.score
 
-bar.style.width=data.score+"%"
+bar.style.width = data.score + "%"
 
 })
+
+.catch(err => console.error("Analyze error:", err))
 
 },800)
 
