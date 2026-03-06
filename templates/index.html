@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>ImpressAR Interview Trainer</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
@@ -13,99 +17,107 @@ text-align:center;
 }
 
 video{
-border-radius:10px;
 border:3px solid #00ffcc;
+border-radius:10px;
 margin-top:20px;
 }
 
 button{
-padding:12px 25px;
-font-size:18px;
-margin-top:20px;
+padding:12px 20px;
+margin:10px;
+font-size:16px;
 cursor:pointer;
-background:#00ffcc;
-border:none;
-border-radius:5px;
 }
 
 #question{
 font-size:22px;
-margin-top:20px;
 color:#00ffcc;
+margin-top:20px;
 }
 
 #timer{
-font-size:30px;
-margin-top:10px;
+font-size:28px;
 }
 
-#score{
-font-size:28px;
-margin-top:10px;
+canvas{
+margin-top:30px;
 }
 
 </style>
+
 </head>
 
 
 <body>
 
-<h1>ImpressAR - Interview Practice</h1>
+<h1>ImpressAR Interview Practice</h1>
 
 <button onclick="startInterview()">Start Interview</button>
+<button onclick="nextQuestion()">Next Question</button>
+<button onclick="finishInterview()">Finish Interview</button>
 
 <h2 id="question"></h2>
 <h2 id="timer"></h2>
 
 <video id="video" width="640" height="480" autoplay playsinline></video>
 
-<canvas id="canvas" style="display:none;"></canvas>
+<canvas id="hidden" style="display:none;"></canvas>
 
 <p id="feedback"></p>
 <h2 id="score"></h2>
 
+<h2 id="report"></h2>
+
+<canvas id="chart" width="600" height="300"></canvas>
+
 <script>
 
+let questions=[]
+let qIndex=0
+let timeLeft=180
+let interviewActive=false
+
 const video=document.getElementById("video")
-const canvas=document.getElementById("canvas")
-const feedbackText=document.getElementById("feedback")
+const canvas=document.getElementById("hidden")
+const ctx=canvas.getContext("2d")
+
+const feedback=document.getElementById("feedback")
 const scoreText=document.getElementById("score")
 const questionText=document.getElementById("question")
 const timerText=document.getElementById("timer")
 
-const context=canvas.getContext("2d")
-
-let interviewActive=false
-let timeLeft=120
-
-// start webcam
-
 navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{
-video.srcObject=stream
-})
+.then(stream=>{video.srcObject=stream})
 
-
-// start interview
 
 function startInterview(){
 
-fetch("/question")
-.then(res=>res.json())
+fetch("/questions")
+
+.then(r=>r.json())
+
 .then(data=>{
-questionText.innerText=data.question
+
+questions=data.questions
+qIndex=0
+
+questionText.innerText=questions[qIndex]
+
 })
 
 interviewActive=true
-timeLeft=120
+timeLeft=180
 
 const timer=setInterval(()=>{
 
+if(!interviewActive) return
+
 if(timeLeft<=0){
+
 clearInterval(timer)
-interviewActive=false
-timerText.innerText="Interview Finished"
+finishInterview()
 return
+
 }
 
 timerText.innerText="Time Left: "+timeLeft+"s"
@@ -116,7 +128,59 @@ timeLeft--
 }
 
 
-// send frames to backend
+function nextQuestion(){
+
+if(qIndex < questions.length-1){
+
+qIndex++
+
+questionText.innerText=questions[qIndex]
+
+}
+
+}
+
+
+function finishInterview(){
+
+interviewActive=false
+
+fetch("/report")
+
+.then(r=>r.json())
+
+.then(data=>{
+
+document.getElementById("report").innerText=
+"Average Confidence Score: "+data.average_score
+
+drawChart(data.trend)
+
+})
+
+}
+
+
+function drawChart(scores){
+
+const ctx=document.getElementById("chart")
+
+new Chart(ctx,{
+
+type:"line",
+
+data:{
+labels:scores.map((_,i)=>i+1),
+datasets:[{
+label:"Confidence Trend",
+data:scores
+}]
+}
+
+})
+
+}
+
 
 setInterval(()=>{
 
@@ -126,23 +190,24 @@ if(!interviewActive) return
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
 
-context.drawImage(video,0,0)
+ctx.drawImage(video,0,0)
 
-const imageData=canvas.toDataURL("image/jpeg")
+const image=canvas.toDataURL("image/jpeg")
 
 fetch("/analyze",{
 
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({image:imageData})
+body:JSON.stringify({image:image})
 
 })
 
-.then(res=>res.json())
+.then(r=>r.json())
+
 .then(data=>{
 
-feedbackText.innerText=data.feedback
-scoreText.innerText="Confidence Score: "+data.score+"/100"
+feedback.innerText=data.feedback
+scoreText.innerText="Score: "+data.score+"/100"
 
 })
 
@@ -151,4 +216,5 @@ scoreText.innerText="Confidence Score: "+data.score+"/100"
 </script>
 
 </body>
+
 </html>
