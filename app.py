@@ -3,16 +3,24 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import base64
+import math
 
 app = Flask(__name__)
 
-# Initialize MediaPipe Pose
+# ---------- MEDIAPIPE INITIALIZATION ----------
+
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 
-# Initialize MediaPipe Face Mesh
 mp_face = mp.solutions.face_mesh
 face_mesh = mp_face.FaceMesh(refine_landmarks=True)
+
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands()
+
+# Track previous hand position for fidget detection
+previous_hand_x = None
+previous_hand_y = None
 
 
 @app.route('/')
@@ -23,9 +31,11 @@ def home():
 @app.route('/analyze', methods=['POST'])
 def analyze():
 
+    global previous_hand_x, previous_hand_y
+
     data = request.json['image']
 
-    # Decode base64 image
+    # ---------- DECODE IMAGE ----------
     image_data = base64.b64decode(data.split(',')[1])
     np_arr = np.frombuffer(image_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
@@ -34,8 +44,9 @@ def analyze():
 
     posture_feedback = "Good posture"
     eye_feedback = "Good eye contact"
+    fidget_feedback = "Stable"
 
-    # -------- POSTURE DETECTION --------
+    # ---------- POSTURE DETECTION ----------
     pose_results = pose.process(rgb_frame)
 
     if pose_results.pose_landmarks:
@@ -45,7 +56,7 @@ def analyze():
         if abs(left_shoulder.y - right_shoulder.y) > 0.05:
             posture_feedback = "Sit straight"
 
-    # -------- EYE CONTACT DETECTION --------
+    # ---------- EYE CONTACT DETECTION ----------
     face_results = face_mesh.process(rgb_frame)
 
     if face_results.multi_face_landmarks:
@@ -60,7 +71,30 @@ def analyze():
         if abs(nose.x - eye_center) > 0.05:
             eye_feedback = "Maintain eye contact"
 
-    combined_feedback = posture_feedback + " | " + eye_feedback
+    # ---------- FIDGET DETECTION ----------
+    hand_results = hands.process(rgb_frame)
+
+    if hand_results.multi_hand_landmarks:
+        hand = hand_results.multi_hand_landmarks[0]
+        wrist = hand.landmark[0]
+
+        current_x = wrist.x
+        current_y = wrist.y
+
+        if previous_hand_x is not None:
+            movement = math.sqrt(
+                (current_x - previous_hand_x) ** 2 +
+                (current_y - previous_hand_y) ** 2
+            )
+
+            if movement > 0.02:
+                fidget_feedback = "Don't fidget"
+
+        previous_hand_x = current_x
+        previous_hand_y = current_y
+
+    # ---------- COMBINED FEEDBACK ----------
+    combined_feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
 
     return jsonify({
         "feedback": combined_feedback
