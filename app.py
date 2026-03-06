@@ -49,10 +49,6 @@ RANDOM_QUESTIONS = [
 "How do you handle pressure?",
 "Tell me about a time you failed.",
 "How do you prioritize tasks?",
-"What makes you unique?",
-"Why did you choose your field?",
-"Describe a conflict you resolved.",
-"What is your greatest achievement?",
 "How do you learn new technologies?",
 "Tell me about teamwork experience.",
 "What is a mistake you learned from?",
@@ -61,8 +57,11 @@ RANDOM_QUESTIONS = [
 "What do you know about our company?",
 "Why should we hire you over others?",
 "What skills are you currently improving?",
-"How do you deal with criticism?"
-
+"How do you deal with criticism?",
+"Describe a conflict you resolved.",
+"What is your biggest achievement?",
+"What makes you unique?",
+"Describe a difficult deadline you handled."
 ]
 
 # ---------------- ROUTES ----------------
@@ -100,7 +99,7 @@ def analyze():
     eye_feedback = "Good eye contact"
     fidget_feedback = "Stable"
 
-    # ---------- POSTURE DETECTION ----------
+    # ---------- POSTURE ----------
 
     pose_results = pose.process(rgb)
 
@@ -110,9 +109,10 @@ def analyze():
         right = pose_results.pose_landmarks.landmark[12]
 
         if abs(left.y - right.y) > 0.05:
+
             posture_feedback = "Sit straight"
 
-    # ---------- EYE CONTACT DETECTION ----------
+    # ---------- EYE CONTACT ----------
 
     face_results = face_mesh.process(rgb)
 
@@ -127,15 +127,17 @@ def analyze():
         center = (left_eye.x + right_eye.x) / 2
 
         if abs(nose.x - center) > 0.05:
+
             eye_feedback = "Maintain eye contact"
 
-    # ---------- FIDGET DETECTION ----------
+    # ---------- FIDGET ----------
 
     hand_results = hands.process(rgb)
 
     if hand_results.multi_hand_landmarks:
 
         hand = hand_results.multi_hand_landmarks[0]
+
         wrist = hand.landmark[0]
 
         cx = wrist.x
@@ -149,6 +151,7 @@ def analyze():
             )
 
             if movement > 0.02:
+
                 fidget_feedback = "Don't fidget"
 
         previous_hand_x = cx
@@ -171,7 +174,6 @@ def analyze():
     else:
         confidence_score -= 0.6
 
-    # clamp score
     confidence_score = max(0, min(100, confidence_score))
     confidence_score = round(confidence_score, 2)
 
@@ -194,8 +196,10 @@ def report():
     avg_score = sum(session_scores) / len(session_scores)
 
     return jsonify({
+
         "average_score": round(avg_score, 2),
         "trend": session_scores
+
     })
 
 
