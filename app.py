@@ -24,7 +24,7 @@ previous_hand_y = None
 
 # ---------------- CONFIDENCE SYSTEM ----------------
 
-confidence_score = 80
+confidence_score = 70
 session_scores = []
 
 # ---------------- QUESTIONS ----------------
@@ -110,7 +110,6 @@ def analyze():
         right = pose_results.pose_landmarks.landmark[12]
 
         if abs(left.y - right.y) > 0.05:
-
             posture_feedback = "Sit straight"
 
     # ---------- EYE CONTACT DETECTION ----------
@@ -128,7 +127,6 @@ def analyze():
         center = (left_eye.x + right_eye.x) / 2
 
         if abs(nose.x - center) > 0.05:
-
             eye_feedback = "Maintain eye contact"
 
     # ---------- FIDGET DETECTION ----------
@@ -138,7 +136,6 @@ def analyze():
     if hand_results.multi_hand_landmarks:
 
         hand = hand_results.multi_hand_landmarks[0]
-
         wrist = hand.landmark[0]
 
         cx = wrist.x
@@ -152,30 +149,31 @@ def analyze():
             )
 
             if movement > 0.02:
-
                 fidget_feedback = "Don't fidget"
 
         previous_hand_x = cx
         previous_hand_y = cy
 
-    # ---------- GRADUAL CONFIDENCE SYSTEM ----------
+    # ---------- SLOW CONFIDENCE SYSTEM ----------
 
     if posture_feedback == "Good posture":
-        confidence_score += 1
+        confidence_score += 0.08
     else:
-        confidence_score -= 2
+        confidence_score -= 0.6
 
     if eye_feedback == "Good eye contact":
-        confidence_score += 1
+        confidence_score += 0.08
     else:
-        confidence_score -= 2
+        confidence_score -= 0.6
 
     if fidget_feedback == "Stable":
-        confidence_score += 1
+        confidence_score += 0.04
     else:
-        confidence_score -= 2
+        confidence_score -= 0.6
 
+    # clamp score
     confidence_score = max(0, min(100, confidence_score))
+    confidence_score = round(confidence_score, 2)
 
     session_scores.append(confidence_score)
 
@@ -196,10 +194,8 @@ def report():
     avg_score = sum(session_scores) / len(session_scores)
 
     return jsonify({
-
         "average_score": round(avg_score, 2),
         "trend": session_scores
-
     })
 
 
