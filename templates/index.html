@@ -1,103 +1,152 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ImpressAR - AI Interview Trainer</title>
+<title>ImpressAR Interview Trainer</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #111;
-            color: white;
-            text-align: center;
-        }
+<style>
 
-        h1 {
-            margin-top: 20px;
-        }
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+}
 
-        video {
-            margin-top: 20px;
-            border-radius: 10px;
-            border: 3px solid #00ffcc;
-        }
+video{
+border-radius:10px;
+border:3px solid #00ffcc;
+margin-top:20px;
+}
 
-        #feedback {
-            margin-top: 20px;
-            font-size: 22px;
-        }
+button{
+padding:12px 25px;
+font-size:18px;
+margin-top:20px;
+cursor:pointer;
+background:#00ffcc;
+border:none;
+border-radius:5px;
+}
 
-        #score {
-            margin-top: 10px;
-            font-size: 28px;
-            color: #00ffcc;
-        }
-    </style>
+#question{
+font-size:22px;
+margin-top:20px;
+color:#00ffcc;
+}
+
+#timer{
+font-size:30px;
+margin-top:10px;
+}
+
+#score{
+font-size:28px;
+margin-top:10px;
+}
+
+</style>
 </head>
 
 
 <body>
 
-<h1>ImpressAR - AI Interview Practice System</h1>
+<h1>ImpressAR - Interview Practice</h1>
+
+<button onclick="startInterview()">Start Interview</button>
+
+<h2 id="question"></h2>
+<h2 id="timer"></h2>
 
 <video id="video" width="640" height="480" autoplay playsinline></video>
 
 <canvas id="canvas" style="display:none;"></canvas>
 
-<p id="feedback">Starting analysis...</p>
-<h2 id="score">Confidence Score: --</h2>
+<p id="feedback"></p>
+<h2 id="score"></h2>
 
 <script>
 
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const feedbackText = document.getElementById("feedback");
-const scoreText = document.getElementById("score");
-const context = canvas.getContext("2d");
+const video=document.getElementById("video")
+const canvas=document.getElementById("canvas")
+const feedbackText=document.getElementById("feedback")
+const scoreText=document.getElementById("score")
+const questionText=document.getElementById("question")
+const timerText=document.getElementById("timer")
 
+const context=canvas.getContext("2d")
 
-// ---------- START WEBCAM ----------
+let interviewActive=false
+let timeLeft=120
 
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-    video.srcObject = stream;
+// start webcam
+
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+video.srcObject=stream
 })
-.catch(err => {
-    console.error("Camera access error:", err);
-});
 
 
-// ---------- SEND FRAMES TO BACKEND ----------
+// start interview
 
-setInterval(() => {
+function startInterview(){
 
-    if (!video.videoWidth) return;
+fetch("/question")
+.then(res=>res.json())
+.then(data=>{
+questionText.innerText=data.question
+})
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+interviewActive=true
+timeLeft=120
 
-    context.drawImage(video, 0, 0);
+const timer=setInterval(()=>{
 
-    const imageData = canvas.toDataURL("image/jpeg");
+if(timeLeft<=0){
+clearInterval(timer)
+interviewActive=false
+timerText.innerText="Interview Finished"
+return
+}
 
-    fetch("/analyze", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            image: imageData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+timerText.innerText="Time Left: "+timeLeft+"s"
+timeLeft--
 
-        feedbackText.innerText = data.feedback;
-        scoreText.innerText = "Confidence Score: " + data.score + " / 100";
+},1000)
 
-    })
-    .catch(error => console.error("Error:", error));
+}
 
-}, 800);
+
+// send frames to backend
+
+setInterval(()=>{
+
+if(!video.videoWidth) return
+if(!interviewActive) return
+
+canvas.width=video.videoWidth
+canvas.height=video.videoHeight
+
+context.drawImage(video,0,0)
+
+const imageData=canvas.toDataURL("image/jpeg")
+
+fetch("/analyze",{
+
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({image:imageData})
+
+})
+
+.then(res=>res.json())
+.then(data=>{
+
+feedbackText.innerText=data.feedback
+scoreText.innerText="Confidence Score: "+data.score+"/100"
+
+})
+
+},800)
 
 </script>
 
