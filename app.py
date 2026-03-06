@@ -8,7 +8,7 @@ import random
 
 app = Flask(__name__)
 
-# ---------- MEDIAPIPE INITIALIZATION ----------
+# ---------------- MEDIAPIPE ----------------
 
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
@@ -22,26 +22,43 @@ hands = mp_hands.Hands()
 previous_hand_x = None
 previous_hand_y = None
 
-INTERVIEW_QUESTIONS = [
-    "Tell me about yourself.",
-    "Why do you want this job?",
-    "What are your strengths and weaknesses?",
-    "Describe a challenge you faced and how you solved it.",
-    "Where do you see yourself in 5 years?",
-    "Why should we hire you?",
-    "Tell me about a time you worked in a team.",
-    "Describe a situation where you showed leadership."
+# ----------- SESSION DATA -----------
+
+session_scores = []
+
+# ----------- QUESTIONS -----------
+
+INTRO_QUESTIONS = [
+    "What is your name?",
+    "What are you currently studying or working on?",
+    "What are your strongest technical skills?"
 ]
 
+RANDOM_QUESTIONS = [
+    "Tell me about yourself.",
+    "Why should we hire you?",
+    "Describe a challenge you faced.",
+    "Tell me about a leadership experience.",
+    "Describe a time you failed and what you learned.",
+    "What motivates you?"
+]
+
+# ---------------- ROUTES ----------------
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/question')
-def question():
-    q = random.choice(INTERVIEW_QUESTIONS)
-    return jsonify({"question": q})
+
+@app.route('/questions')
+def questions():
+
+    selected_random = random.sample(RANDOM_QUESTIONS, 3)
+
+    all_questions = INTRO_QUESTIONS + selected_random
+
+    return jsonify({"questions": all_questions})
+
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -50,12 +67,11 @@ def analyze():
 
     data = request.json['image']
 
-    # ---------- IMAGE DECODING ----------
     image_data = base64.b64decode(data.split(',')[1])
     np_arr = np.frombuffer(image_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     posture_feedback = "Good posture"
     eye_feedback = "Good eye contact"
@@ -65,66 +81,95 @@ def analyze():
     eye_score = 40
     fidget_score = 20
 
-    # ---------- POSTURE DETECTION ----------
-    pose_results = pose.process(rgb_frame)
+    # ---------- POSTURE ----------
+
+    pose_results = pose.process(rgb)
 
     if pose_results.pose_landmarks:
-        left_shoulder = pose_results.pose_landmarks.landmark[11]
-        right_shoulder = pose_results.pose_landmarks.landmark[12]
 
-        if abs(left_shoulder.y - right_shoulder.y) > 0.05:
+        l = pose_results.pose_landmarks.landmark[11]
+        r = pose_results.pose_landmarks.landmark[12]
+
+        if abs(l.y - r.y) > 0.05:
+
             posture_feedback = "Sit straight"
             posture_score = 20
 
-    # ---------- EYE CONTACT DETECTION ----------
-    face_results = face_mesh.process(rgb_frame)
+    # ---------- EYE CONTACT ----------
+
+    face_results = face_mesh.process(rgb)
 
     if face_results.multi_face_landmarks:
+
         face = face_results.multi_face_landmarks[0]
 
         nose = face.landmark[1]
         left_eye = face.landmark[33]
         right_eye = face.landmark[263]
 
-        eye_center = (left_eye.x + right_eye.x) / 2
+        center = (left_eye.x + right_eye.x) / 2
 
-        if abs(nose.x - eye_center) > 0.05:
+        if abs(nose.x - center) > 0.05:
+
             eye_feedback = "Maintain eye contact"
             eye_score = 20
 
-    # ---------- FIDGET DETECTION ----------
-    hand_results = hands.process(rgb_frame)
+    # ---------- FIDGET ----------
+
+    hand_results = hands.process(rgb)
 
     if hand_results.multi_hand_landmarks:
+
         hand = hand_results.multi_hand_landmarks[0]
+
         wrist = hand.landmark[0]
 
-        current_x = wrist.x
-        current_y = wrist.y
+        cx = wrist.x
+        cy = wrist.y
 
         if previous_hand_x is not None:
+
             movement = math.sqrt(
-                (current_x - previous_hand_x) ** 2 +
-                (current_y - previous_hand_y) ** 2
+                (cx - previous_hand_x) ** 2 +
+                (cy - previous_hand_y) ** 2
             )
 
             if movement > 0.02:
+
                 fidget_feedback = "Don't fidget"
                 fidget_score = 10
 
-        previous_hand_x = current_x
-        previous_hand_y = current_y
+        previous_hand_x = cx
+        previous_hand_y = cy
 
-    # ---------- CONFIDENCE SCORE ----------
-    confidence_score = posture_score + eye_score + fidget_score
+    score = posture_score + eye_score + fidget_score
+
+    session_scores.append(score)
 
     feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
 
     return jsonify({
         "feedback": feedback,
-        "score": confidence_score
+        "score": score
     })
 
 
-if __name__ == '__main__':
+@app.route('/report')
+def report():
+
+    if len(session_scores) == 0:
+
+        return jsonify({"error": "No session data"})
+
+    avg_score = sum(session_scores) / len(session_scores)
+
+    return jsonify({
+
+        "average_score": round(avg_score, 2),
+        "trend": session_scores
+
+    })
+
+
+if __name__ == "__main__":
     app.run(debug=True)
