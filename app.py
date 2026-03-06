@@ -4,6 +4,7 @@ import numpy as np
 import mediapipe as mp
 import base64
 import math
+import random
 
 app = Flask(__name__)
 
@@ -21,11 +22,26 @@ hands = mp_hands.Hands()
 previous_hand_x = None
 previous_hand_y = None
 
+INTERVIEW_QUESTIONS = [
+    "Tell me about yourself.",
+    "Why do you want this job?",
+    "What are your strengths and weaknesses?",
+    "Describe a challenge you faced and how you solved it.",
+    "Where do you see yourself in 5 years?",
+    "Why should we hire you?",
+    "Tell me about a time you worked in a team.",
+    "Describe a situation where you showed leadership."
+]
+
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
+@app.route('/question')
+def question():
+    q = random.choice(INTERVIEW_QUESTIONS)
+    return jsonify({"question": q})
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
