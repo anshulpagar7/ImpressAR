@@ -22,11 +22,12 @@ hands = mp_hands.Hands()
 previous_hand_x = None
 previous_hand_y = None
 
-# ----------- SESSION DATA -----------
+# ---------------- CONFIDENCE SYSTEM ----------------
 
+confidence_score = 80
 session_scores = []
 
-# ----------- QUESTIONS -----------
+# ---------------- QUESTIONS ----------------
 
 INTRO_QUESTIONS = [
     "What is your name?",
@@ -35,12 +36,33 @@ INTRO_QUESTIONS = [
 ]
 
 RANDOM_QUESTIONS = [
-    "Tell me about yourself.",
-    "Why should we hire you?",
-    "Describe a challenge you faced.",
-    "Tell me about a leadership experience.",
-    "Describe a time you failed and what you learned.",
-    "What motivates you?"
+
+"Tell me about yourself.",
+"Why should we hire you?",
+"What motivates you?",
+"Describe a challenge you solved.",
+"What are your strengths?",
+"What are your weaknesses?",
+"Where do you see yourself in 5 years?",
+"Tell me about a leadership experience.",
+"Describe a difficult project you worked on.",
+"How do you handle pressure?",
+"Tell me about a time you failed.",
+"How do you prioritize tasks?",
+"What makes you unique?",
+"Why did you choose your field?",
+"Describe a conflict you resolved.",
+"What is your greatest achievement?",
+"How do you learn new technologies?",
+"Tell me about teamwork experience.",
+"What is a mistake you learned from?",
+"How do you stay productive?",
+"What is your dream job?",
+"What do you know about our company?",
+"Why should we hire you over others?",
+"What skills are you currently improving?",
+"How do you deal with criticism?"
+
 ]
 
 # ---------------- ROUTES ----------------
@@ -53,7 +75,7 @@ def home():
 @app.route('/questions')
 def questions():
 
-    selected_random = random.sample(RANDOM_QUESTIONS, 3)
+    selected_random = random.sample(RANDOM_QUESTIONS, 5)
 
     all_questions = INTRO_QUESTIONS + selected_random
 
@@ -64,6 +86,7 @@ def questions():
 def analyze():
 
     global previous_hand_x, previous_hand_y
+    global confidence_score
 
     data = request.json['image']
 
@@ -77,25 +100,20 @@ def analyze():
     eye_feedback = "Good eye contact"
     fidget_feedback = "Stable"
 
-    posture_score = 40
-    eye_score = 40
-    fidget_score = 20
-
-    # ---------- POSTURE ----------
+    # ---------- POSTURE DETECTION ----------
 
     pose_results = pose.process(rgb)
 
     if pose_results.pose_landmarks:
 
-        l = pose_results.pose_landmarks.landmark[11]
-        r = pose_results.pose_landmarks.landmark[12]
+        left = pose_results.pose_landmarks.landmark[11]
+        right = pose_results.pose_landmarks.landmark[12]
 
-        if abs(l.y - r.y) > 0.05:
+        if abs(left.y - right.y) > 0.05:
 
             posture_feedback = "Sit straight"
-            posture_score = 20
 
-    # ---------- EYE CONTACT ----------
+    # ---------- EYE CONTACT DETECTION ----------
 
     face_results = face_mesh.process(rgb)
 
@@ -112,9 +130,8 @@ def analyze():
         if abs(nose.x - center) > 0.05:
 
             eye_feedback = "Maintain eye contact"
-            eye_score = 20
 
-    # ---------- FIDGET ----------
+    # ---------- FIDGET DETECTION ----------
 
     hand_results = hands.process(rgb)
 
@@ -137,20 +154,36 @@ def analyze():
             if movement > 0.02:
 
                 fidget_feedback = "Don't fidget"
-                fidget_score = 10
 
         previous_hand_x = cx
         previous_hand_y = cy
 
-    score = posture_score + eye_score + fidget_score
+    # ---------- GRADUAL CONFIDENCE SYSTEM ----------
 
-    session_scores.append(score)
+    if posture_feedback == "Good posture":
+        confidence_score += 1
+    else:
+        confidence_score -= 2
+
+    if eye_feedback == "Good eye contact":
+        confidence_score += 1
+    else:
+        confidence_score -= 2
+
+    if fidget_feedback == "Stable":
+        confidence_score += 1
+    else:
+        confidence_score -= 2
+
+    confidence_score = max(0, min(100, confidence_score))
+
+    session_scores.append(confidence_score)
 
     feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
 
     return jsonify({
         "feedback": feedback,
-        "score": score
+        "score": confidence_score
     })
 
 
@@ -158,7 +191,6 @@ def analyze():
 def report():
 
     if len(session_scores) == 0:
-
         return jsonify({"error": "No session data"})
 
     avg_score = sum(session_scores) / len(session_scores)
