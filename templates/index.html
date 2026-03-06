@@ -10,37 +10,72 @@
 <style>
 
 body{
-background:#111;
+background:#0f172a;
 color:white;
 font-family:Arial;
+margin:0;
+}
+
+header{
+text-align:center;
+padding:20px;
+font-size:28px;
+background:#020617;
+}
+
+.container{
+display:flex;
+padding:20px;
+gap:20px;
+}
+
+.left{
+flex:1;
 text-align:center;
 }
 
+.right{
+flex:1;
+}
+
 video{
-border:3px solid #00ffcc;
+width:100%;
 border-radius:10px;
-margin-top:20px;
+border:3px solid #22c55e;
+}
+
+.card{
+background:#020617;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
 }
 
 button{
-padding:12px 20px;
-margin:10px;
-font-size:16px;
+padding:10px 20px;
+margin-right:10px;
 cursor:pointer;
+border:none;
+border-radius:6px;
+background:#22c55e;
 }
 
-#question{
-font-size:22px;
-color:#00ffcc;
+.progress{
+width:100%;
+background:#1e293b;
+border-radius:5px;
+margin-top:10px;
+}
+
+.progress-bar{
+height:20px;
+background:#22c55e;
+width:0%;
+border-radius:5px;
+}
+
+#chart{
 margin-top:20px;
-}
-
-#timer{
-font-size:28px;
-}
-
-canvas{
-margin-top:30px;
 }
 
 </style>
@@ -50,52 +85,105 @@ margin-top:30px;
 
 <body>
 
-<h1>ImpressAR Interview Practice</h1>
+<header>ImpressAR Interview Practice</header>
 
-<button onclick="startInterview()">Start Interview</button>
-<button onclick="nextQuestion()">Next Question</button>
-<button onclick="finishInterview()">Finish Interview</button>
+<div class="container">
 
-<h2 id="question"></h2>
-<h2 id="timer"></h2>
+<div class="left">
 
-<video id="video" width="640" height="480" autoplay playsinline></video>
+<video id="video" autoplay playsinline></video>
 
-<canvas id="hidden" style="display:none;"></canvas>
+</div>
+
+
+<div class="right">
+
+<div class="card">
+
+<h3>Question</h3>
+
+<p id="question">Press Start Interview</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Timer</h3>
+
+<h2 id="timer">--</h2>
+
+</div>
+
+
+<div class="card">
+
+<h3>Confidence Score</h3>
+
+<div class="progress">
+<div id="bar" class="progress-bar"></div>
+</div>
+
+<p id="score"></p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Feedback</h3>
 
 <p id="feedback"></p>
-<h2 id="score"></h2>
 
-<h2 id="report"></h2>
+</div>
 
-<canvas id="chart" width="600" height="300"></canvas>
+
+<button onclick="startInterview()">Start</button>
+<button onclick="nextQuestion()">Next</button>
+<button onclick="finishInterview()">Finish</button>
+
+</div>
+
+</div>
+
+
+<div style="padding:20px">
+
+<h2 style="text-align:center">Confidence Trend</h2>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+
+<canvas id="hidden" style="display:none"></canvas>
+
 
 <script>
 
 let questions=[]
 let qIndex=0
-let timeLeft=180
 let interviewActive=false
+let timeLeft=180
 
 const video=document.getElementById("video")
 const canvas=document.getElementById("hidden")
 const ctx=canvas.getContext("2d")
 
-const feedback=document.getElementById("feedback")
-const scoreText=document.getElementById("score")
 const questionText=document.getElementById("question")
 const timerText=document.getElementById("timer")
+const feedbackText=document.getElementById("feedback")
+const scoreText=document.getElementById("score")
+const bar=document.getElementById("bar")
 
 navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{video.srcObject=stream})
+.then(stream=>video.srcObject=stream)
 
 
 function startInterview(){
 
 fetch("/questions")
-
 .then(r=>r.json())
-
 .then(data=>{
 
 questions=data.questions
@@ -114,13 +202,13 @@ if(!interviewActive) return
 
 if(timeLeft<=0){
 
-clearInterval(timer)
 finishInterview()
+clearInterval(timer)
 return
 
 }
 
-timerText.innerText="Time Left: "+timeLeft+"s"
+timerText.innerText=timeLeft+" seconds"
 timeLeft--
 
 },1000)
@@ -146,13 +234,10 @@ function finishInterview(){
 interviewActive=false
 
 fetch("/report")
-
 .then(r=>r.json())
-
 .then(data=>{
 
-document.getElementById("report").innerText=
-"Average Confidence Score: "+data.average_score
+scoreText.innerText="Average Score: "+data.average_score
 
 drawChart(data.trend)
 
@@ -163,16 +248,14 @@ drawChart(data.trend)
 
 function drawChart(scores){
 
-const ctx=document.getElementById("chart")
-
-new Chart(ctx,{
+new Chart(document.getElementById("chart"),{
 
 type:"line",
 
 data:{
 labels:scores.map((_,i)=>i+1),
 datasets:[{
-label:"Confidence Trend",
+label:"Confidence",
 data:scores
 }]
 }
@@ -184,21 +267,21 @@ data:scores
 
 setInterval(()=>{
 
-if(!video.videoWidth) return
 if(!interviewActive) return
+if(!video.videoWidth) return
 
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
 
 ctx.drawImage(video,0,0)
 
-const image=canvas.toDataURL("image/jpeg")
+const img=canvas.toDataURL("image/jpeg")
 
 fetch("/analyze",{
 
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({image:image})
+body:JSON.stringify({image:img})
 
 })
 
@@ -206,8 +289,10 @@ body:JSON.stringify({image:image})
 
 .then(data=>{
 
-feedback.innerText=data.feedback
-scoreText.innerText="Score: "+data.score+"/100"
+feedbackText.innerText=data.feedback
+scoreText.innerText="Score: "+data.score
+
+bar.style.width=data.score+"%"
 
 })
 
