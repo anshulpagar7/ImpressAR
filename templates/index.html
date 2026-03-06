@@ -1,40 +1,105 @@
-<video id="video" autoplay playsinline></video>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ImpressAR - AI Interview Trainer</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        video {
+            margin-top: 20px;
+            border-radius: 10px;
+            border: 3px solid #00ffcc;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: 22px;
+        }
+
+        #score {
+            margin-top: 10px;
+            font-size: 28px;
+            color: #00ffcc;
+        }
+    </style>
+</head>
+
+
+<body>
+
+<h1>ImpressAR - AI Interview Practice System</h1>
+
+<video id="video" width="640" height="480" autoplay playsinline></video>
+
 <canvas id="canvas" style="display:none;"></canvas>
-<p id="feedback"></p>
+
+<p id="feedback">Starting analysis...</p>
+<h2 id="score">Confidence Score: --</h2>
 
 <script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const feedbackText = document.getElementById('feedback');
-const context = canvas.getContext('2d');
 
-// Start webcam
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const feedbackText = document.getElementById("feedback");
+const scoreText = document.getElementById("score");
+const context = canvas.getContext("2d");
+
+
+// ---------- START WEBCAM ----------
+
 navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
+.then(stream => {
     video.srcObject = stream;
-  })
-  .catch(err => {
-    console.error("Error accessing webcam:", err);
-  });
+})
+.catch(err => {
+    console.error("Camera access error:", err);
+});
 
-// Send frames to backend
+
+// ---------- SEND FRAMES TO BACKEND ----------
+
 setInterval(() => {
+
     if (!video.videoWidth) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+
     context.drawImage(video, 0, 0);
 
-    const imageData = canvas.toDataURL('image/jpeg');
+    const imageData = canvas.toDataURL("image/jpeg");
 
-    fetch('/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageData })
+    fetch("/analyze", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            image: imageData
+        })
     })
     .then(response => response.json())
     .then(data => {
+
         feedbackText.innerText = data.feedback;
-    });
+        scoreText.innerText = "Confidence Score: " + data.score + " / 100";
+
+    })
+    .catch(error => console.error("Error:", error));
+
 }, 800);
+
 </script>
+
+</body>
+</html>

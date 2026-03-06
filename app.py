@@ -18,7 +18,6 @@ face_mesh = mp_face.FaceMesh(refine_landmarks=True)
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-# Track previous hand position for fidget detection
 previous_hand_x = None
 previous_hand_y = None
 
@@ -35,7 +34,7 @@ def analyze():
 
     data = request.json['image']
 
-    # ---------- DECODE IMAGE ----------
+    # ---------- IMAGE DECODING ----------
     image_data = base64.b64decode(data.split(',')[1])
     np_arr = np.frombuffer(image_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
@@ -46,6 +45,10 @@ def analyze():
     eye_feedback = "Good eye contact"
     fidget_feedback = "Stable"
 
+    posture_score = 40
+    eye_score = 40
+    fidget_score = 20
+
     # ---------- POSTURE DETECTION ----------
     pose_results = pose.process(rgb_frame)
 
@@ -55,6 +58,7 @@ def analyze():
 
         if abs(left_shoulder.y - right_shoulder.y) > 0.05:
             posture_feedback = "Sit straight"
+            posture_score = 20
 
     # ---------- EYE CONTACT DETECTION ----------
     face_results = face_mesh.process(rgb_frame)
@@ -70,6 +74,7 @@ def analyze():
 
         if abs(nose.x - eye_center) > 0.05:
             eye_feedback = "Maintain eye contact"
+            eye_score = 20
 
     # ---------- FIDGET DETECTION ----------
     hand_results = hands.process(rgb_frame)
@@ -89,15 +94,19 @@ def analyze():
 
             if movement > 0.02:
                 fidget_feedback = "Don't fidget"
+                fidget_score = 10
 
         previous_hand_x = current_x
         previous_hand_y = current_y
 
-    # ---------- COMBINED FEEDBACK ----------
-    combined_feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
+    # ---------- CONFIDENCE SCORE ----------
+    confidence_score = posture_score + eye_score + fidget_score
+
+    feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
 
     return jsonify({
-        "feedback": combined_feedback
+        "feedback": feedback,
+        "score": confidence_score
     })
 
 
