@@ -2,35 +2,63 @@
 <html>
 
 <head>
+
 <title>ImpressAR Login</title>
+
 <link rel="stylesheet" href="/static/style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
 </head>
 
 <body>
 
-<div class="center-card">
+<div class="login-container">
 
-<h1>ImpressAR</h1>
+<div class="card login-card">
 
-<p>AI Powered Interview Trainer</p>
+<h1>
+
+<i data-lucide="brain"></i>
+ImpressAR
+
+</h1>
+
+<p>AI Interview Practice Platform</p>
 
 <form action="/home">
 
 <input type="text" placeholder="Your Name" required>
 
-<input type="email" placeholder="Email" required>
+<input type="email" placeholder="Email Address" required>
 
 <select>
+
 <option>Student</option>
 <option>Fresher</option>
 <option>Professional</option>
+
 </select>
 
-<button type="submit">Start Training</button>
+<button type="submit">
+
+<i data-lucide="arrow-right"></i>
+Start Training
+
+</button>
 
 </form>
 
 </div>
 
+</div>
+
+<script>
+lucide.createIcons()
+</script>
+
 </body>
+
 </html>
