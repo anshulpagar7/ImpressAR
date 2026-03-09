@@ -70,10 +70,10 @@ RANDOM_QUESTIONS = [
 "What is your biggest achievement",
 "What makes you unique",
 "Describe a difficult deadline you handled"
+
 ]
 
 # ---------------- BASIC PAGES ----------------
-
 
 @app.route("/")
 def login():
@@ -97,21 +97,20 @@ def add_questions():
 
 # ---------------- SAVE COMMUNITY QUESTIONS ----------------
 
-
 @app.route("/save_questions", methods=["POST"])
 def save_questions():
 
     questions = request.form["questions"].split("\n")
 
     for q in questions:
-        if q.strip() != "":
-            RANDOM_QUESTIONS.append(q.strip())
+        q = q.strip()
+        if q != "":
+            RANDOM_QUESTIONS.append(q)
 
     return redirect("/home")
 
 
 # ---------------- QUESTION GENERATOR ----------------
-
 
 @app.route("/questions")
 def questions():
@@ -124,7 +123,6 @@ def questions():
 
 
 # ---------------- FRAME ANALYSIS ----------------
-
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -149,7 +147,7 @@ def analyze():
 
     total_frames += 1
 
-    # -------- POSTURE --------
+    # -------- POSTURE DETECTION --------
 
     pose_results = pose.process(rgb)
 
@@ -183,8 +181,6 @@ def analyze():
         else:
             good_eye_frames += 1
 
-        # head stability
-
         if previous_nose_x is not None:
 
             head_move = abs(nose.x - previous_nose_x)
@@ -195,7 +191,7 @@ def analyze():
         previous_nose_x = nose.x
 
 
-    # -------- HAND / FIDGET --------
+    # -------- HAND / FIDGET DETECTION --------
 
     hand_results = hands.process(rgb)
 
@@ -225,7 +221,7 @@ def analyze():
         previous_hand_y = cy
 
 
-    # -------- CONFIDENCE SYSTEM --------
+    # -------- CONFIDENCE SCORING --------
 
     if posture_feedback == "Good posture":
         confidence_score += 0.08
@@ -254,11 +250,10 @@ def analyze():
     })
 
 
-# ---------------- REPORT GENERATION ----------------
+# ---------------- REPORT PAGE ----------------
 
-
-@app.route("/report")
-def report():
+@app.route("/report_page")
+def report_page():
 
     global total_frames, good_posture_frames
     global good_eye_frames, fidget_frames
@@ -266,14 +261,12 @@ def report():
     global head_move_frames
 
     if total_frames == 0:
-        return jsonify({"error": "No session data"})
+        return redirect("/home")
 
     posture_score = (good_posture_frames / total_frames) * 100
     eye_score = (good_eye_frames / total_frames) * 100
     fidget_ratio = (fidget_frames / total_frames) * 100
     head_movement = (head_move_frames / total_frames) * 100
-
-    movement_avg = movement_total / total_frames
 
     avg_score = sum(session_scores) / len(session_scores)
 
@@ -289,30 +282,24 @@ def report():
         suggestions.append("Reduce unnecessary hand movement while answering.")
 
     if head_movement > 25:
-        suggestions.append("Avoid excessive head movement to maintain a stable presence.")
+        suggestions.append("Avoid excessive head movement.")
 
     if len(suggestions) == 0:
-        suggestions.append("Excellent body language. Continue practicing structured answers.")
+        suggestions.append("Excellent body language. Continue practicing.")
 
-    return jsonify({
-
-        "average_score": round(avg_score, 2),
-
-        "posture_score": round(posture_score, 2),
-        "eye_score": round(eye_score, 2),
-        "fidget_ratio": round(fidget_ratio, 2),
-        "movement": round(movement_avg, 4),
-        "head_movement": round(head_movement, 2),
-
-        "suggestions": suggestions,
-
-        "trend": session_scores
-
-    })
+    return render_template(
+        "report.html",
+        avg=round(avg_score, 2),
+        posture=round(posture_score, 2),
+        eye=round(eye_score, 2),
+        fidget=round(fidget_ratio, 2),
+        head=round(head_movement, 2),
+        suggestions=suggestions,
+        trend=session_scores
+    )
 
 
 # ---------------- RESET SESSION ----------------
-
 
 @app.route("/reset")
 def reset():
@@ -337,7 +324,6 @@ def reset():
 
 
 # ---------------- RUN SERVER ----------------
-
 
 if __name__ == "__main__":
     app.run(debug=True)

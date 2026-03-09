@@ -86,6 +86,9 @@ function finishInterview(){
 
 interviewActive=false
 
+window.location.href="/report_page"
+
+
 fetch("/report")
 .then(r=>r.json())
 .then(data=>{

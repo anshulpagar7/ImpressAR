@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Interview Report</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Interview Report</h1>
+
+</header>
+
+
+<div class="report-container">
+
+<div class="card">
+
+<h2>Performance Summary</h2>
+
+<p><b>Confidence Score:</b> {{avg}}</p>
+
+<p><b>Posture Stability:</b> {{posture}}%</p>
+
+<p><b>Eye Contact:</b> {{eye}}%</p>
+
+<p><b>Fidget Level:</b> {{fidget}}%</p>
+
+<p><b>Head Movement:</b> {{head}}%</p>
+
+</div>
+
+
+<div class="card">
+
+<h2>AI Suggestions</h2>
+
+<ul>
+
+{% for s in suggestions %}
+
+<li>{{s}}</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+
+<div class="card">
+
+<h2>Confidence Trend</h2>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+
+<button onclick="location.href='/home'">
+
+Return Home
+
+</button>
+
+</div>
+
+
+<script>
+
+const trend={{trend|safe}}
+
+new Chart(document.getElementById("chart"),{
+
+type:"line",
+
+data:{
+labels:trend.map((_,i)=>i+1),
+
+datasets:[{
+
+label:"Confidence Trend",
+
+data:trend,
+
+borderColor:"#c79b5b",
+
+backgroundColor:"rgba(199,155,91,0.2)",
+
+fill:true
+
+}]
+
+}
+
+})
+
+</script>
+
+</body>
+
+</html>
