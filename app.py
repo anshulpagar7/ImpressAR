@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -70,32 +70,63 @@ RANDOM_QUESTIONS = [
 "What is your biggest achievement",
 "What makes you unique",
 "Describe a difficult deadline you handled"
-
 ]
 
-# ---------------- ROUTES ----------------
+# ---------------- BASIC PAGES ----------------
 
 
-@app.route('/')
+@app.route("/")
+def login():
+    return render_template("login.html")
+
+
+@app.route("/home")
 def home():
-    return render_template("index.html")
+    return render_template("home.html")
 
 
-# -------- QUESTION GENERATOR --------
+@app.route("/interview")
+def interview():
+    return render_template("interview.html")
 
-@app.route('/questions')
+
+@app.route("/add_questions")
+def add_questions():
+    return render_template("add_questions.html")
+
+
+# ---------------- SAVE COMMUNITY QUESTIONS ----------------
+
+
+@app.route("/save_questions", methods=["POST"])
+def save_questions():
+
+    questions = request.form["questions"].split("\n")
+
+    for q in questions:
+        if q.strip() != "":
+            RANDOM_QUESTIONS.append(q.strip())
+
+    return redirect("/home")
+
+
+# ---------------- QUESTION GENERATOR ----------------
+
+
+@app.route("/questions")
 def questions():
 
-    selected_random = random.sample(RANDOM_QUESTIONS,7)
+    selected_random = random.sample(RANDOM_QUESTIONS, 7)
 
     return jsonify({
         "questions": INTRO_QUESTIONS + selected_random
     })
 
 
-# -------- FRAME ANALYSIS --------
+# ---------------- FRAME ANALYSIS ----------------
 
-@app.route('/analyze', methods=['POST'])
+
+@app.route("/analyze", methods=["POST"])
 def analyze():
 
     global previous_hand_x, previous_hand_y, previous_nose_x
@@ -104,9 +135,9 @@ def analyze():
     global good_eye_frames, fidget_frames
     global movement_total, head_move_frames
 
-    data = request.json['image']
+    data = request.json["image"]
 
-    image_data = base64.b64decode(data.split(',')[1])
+    image_data = base64.b64decode(data.split(",")[1])
     np_arr = np.frombuffer(image_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -118,7 +149,7 @@ def analyze():
 
     total_frames += 1
 
-    # -------- POSTURE DETECTION --------
+    # -------- POSTURE --------
 
     pose_results = pose.process(rgb)
 
@@ -152,7 +183,8 @@ def analyze():
         else:
             good_eye_frames += 1
 
-        # HEAD MOVEMENT DETECTION
+        # head stability
+
         if previous_nose_x is not None:
 
             head_move = abs(nose.x - previous_nose_x)
@@ -163,7 +195,7 @@ def analyze():
         previous_nose_x = nose.x
 
 
-    # -------- HAND / FIDGET DETECTION --------
+    # -------- HAND / FIDGET --------
 
     hand_results = hands.process(rgb)
 
@@ -193,7 +225,7 @@ def analyze():
         previous_hand_y = cy
 
 
-    # -------- CONFIDENCE SCORING --------
+    # -------- CONFIDENCE SYSTEM --------
 
     if posture_feedback == "Good posture":
         confidence_score += 0.08
@@ -218,13 +250,14 @@ def analyze():
 
     return jsonify({
         "feedback": feedback,
-        "score": round(confidence_score,2)
+        "score": round(confidence_score, 2)
     })
 
 
-# -------- REPORT GENERATION --------
+# ---------------- REPORT GENERATION ----------------
 
-@app.route('/report')
+
+@app.route("/report")
 def report():
 
     global total_frames, good_posture_frames
@@ -233,7 +266,7 @@ def report():
     global head_move_frames
 
     if total_frames == 0:
-        return jsonify({"error":"No session data"})
+        return jsonify({"error": "No session data"})
 
     posture_score = (good_posture_frames / total_frames) * 100
     eye_score = (good_eye_frames / total_frames) * 100
@@ -244,39 +277,10 @@ def report():
 
     avg_score = sum(session_scores) / len(session_scores)
 
-    # -------- ANALYSIS --------
-
-    posture_analysis = ""
-    eye_analysis = ""
-    movement_analysis = ""
-
-    if posture_score > 85:
-        posture_analysis = "Your posture remained upright and confident throughout most of the interview."
-    elif posture_score > 70:
-        posture_analysis = "Your posture was mostly stable but occasionally shifted."
-    else:
-        posture_analysis = "Frequent posture changes were detected. Maintaining a straight back will improve confidence."
-
-    if eye_score > 85:
-        eye_analysis = "Excellent eye contact was maintained which conveys engagement."
-    elif eye_score > 70:
-        eye_analysis = "Eye contact was moderate but occasionally drifted away."
-    else:
-        eye_analysis = "Eye contact was inconsistent. Focus more on the camera lens."
-
-    if fidget_ratio < 15:
-        movement_analysis = "Body movement was controlled and calm."
-    elif fidget_ratio < 30:
-        movement_analysis = "Moderate hand movement was detected."
-    else:
-        movement_analysis = "Frequent fidgeting was detected which may appear nervous."
-
-    # -------- SUGGESTIONS --------
-
     suggestions = []
 
     if posture_score < 80:
-        suggestions.append("Practice maintaining a straight posture with aligned shoulders.")
+        suggestions.append("Maintain a straight posture with relaxed shoulders.")
 
     if eye_score < 80:
         suggestions.append("Look closer to the webcam to simulate stronger eye contact.")
@@ -292,17 +296,13 @@ def report():
 
     return jsonify({
 
-        "average_score": round(avg_score,2),
+        "average_score": round(avg_score, 2),
 
-        "posture_score": round(posture_score,2),
-        "eye_score": round(eye_score,2),
-        "fidget_ratio": round(fidget_ratio,2),
-        "movement": round(movement_avg,4),
-        "head_movement": round(head_movement,2),
-
-        "posture_analysis": posture_analysis,
-        "eye_analysis": eye_analysis,
-        "movement_analysis": movement_analysis,
+        "posture_score": round(posture_score, 2),
+        "eye_score": round(eye_score, 2),
+        "fidget_ratio": round(fidget_ratio, 2),
+        "movement": round(movement_avg, 4),
+        "head_movement": round(head_movement, 2),
 
         "suggestions": suggestions,
 
@@ -311,9 +311,10 @@ def report():
     })
 
 
-# -------- RESET SESSION --------
+# ---------------- RESET SESSION ----------------
 
-@app.route('/reset')
+
+@app.route("/reset")
 def reset():
 
     global session_scores, total_frames
@@ -332,10 +333,11 @@ def reset():
 
     confidence_score = 70
 
-    return jsonify({"status":"reset"})
+    return jsonify({"status": "reset"})
 
 
-# -------- RUN SERVER --------
+# ---------------- RUN SERVER ----------------
+
 
 if __name__ == "__main__":
     app.run(debug=True)
