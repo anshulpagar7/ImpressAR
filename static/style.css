@@ -1,79 +1,81 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
 body{
 font-family:'Inter',sans-serif;
 color:#e2e8f0;
-background:linear-gradient(-45deg,#0f172a,#020617,#1e293b,#020617);
-background-size:400% 400%;
-animation:gradientBG 15s ease infinite;
+margin:0;
+
+/* wood texture */
+background-image:url("https://www.transparenttextures.com/patterns/dark-wood.png");
+background-color:#1b120a;
+
 min-height:100vh;
 }
 
-@keyframes gradientBG{
-0%{background-position:0% 50%}
-50%{background-position:100% 50%}
-100%{background-position:0% 50%}
+/* page border */
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+border:12px solid #5c3a21;
+pointer-events:none;
+box-shadow:inset 0 0 40px rgba(0,0,0,0.7);
 }
+
+/* navbar */
 
 header{
 display:flex;
 justify-content:space-between;
 align-items:center;
 padding:25px 60px;
+background:rgba(0,0,0,0.4);
+backdrop-filter:blur(8px);
 }
 
-.logo{
-font-size:24px;
-font-weight:600;
-}
-
-nav a{
-margin-left:25px;
-text-decoration:none;
-color:#e2e8f0;
-transition:0.3s;
-}
-
-nav a:hover{
-color:#22c55e;
-}
+/* hero */
 
 .hero{
 text-align:center;
 margin-top:120px;
-padding:0 20px;
 }
 
-.hero h1{
-font-size:56px;
-margin-bottom:20px;
-}
-
-.hero p{
-font-size:20px;
-opacity:0.8;
-margin-bottom:40px;
-}
+/* buttons */
 
 button{
 padding:14px 26px;
 border:none;
-border-radius:10px;
-background:#22c55e;
+border-radius:8px;
+background:#c79b5b;
 color:black;
 font-weight:600;
 cursor:pointer;
-transition:all 0.3s ease;
+transition:0.3s;
 }
 
 button:hover{
 transform:translateY(-3px);
-box-shadow:0 12px 40px rgba(34,197,94,0.4);
+box-shadow:0 10px 30px rgba(0,0,0,0.6);
 }
+
+/* glass cards */
+
+.card{
+background:rgba(255,255,255,0.06);
+backdrop-filter:blur(10px);
+border-radius:14px;
+padding:30px;
+border:1px solid rgba(255,255,255,0.1);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-6px);
+}
+
+/* feature grid */
 
 .features{
 display:grid;
@@ -82,34 +84,4 @@ gap:30px;
 padding:80px;
 max-width:1100px;
 margin:auto;
-}
-
-.card{
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(10px);
-border-radius:15px;
-padding:30px;
-transition:all 0.3s ease;
-border:1px solid rgba(255,255,255,0.1);
-}
-
-.card:hover{
-transform:translateY(-6px);
-box-shadow:0 15px 40px rgba(0,0,0,0.4);
-}
-
-.card h3{
-margin-bottom:10px;
-}
-
-.card p{
-opacity:0.8;
-}
-
-i[data-lucide]{
-width:22px;
-height:22px;
-margin-right:8px;
-color:#22c55e;
-vertical-align:middle;
 }
