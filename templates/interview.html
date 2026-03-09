@@ -3,425 +3,99 @@
 
 <head>
 
-<title>ImpressAR Interview Trainer</title>
+<title>ImpressAR Interview</title>
+
+<link rel="stylesheet" href="/static/style.css">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-
-body{
-background:#0f172a;
-color:white;
-font-family:Arial;
-margin:0;
-}
-
-header{
-text-align:center;
-padding:20px;
-font-size:28px;
-background:#020617;
-}
-
-.container{
-display:flex;
-padding:20px;
-gap:20px;
-}
-
-.left{
-flex:1;
-text-align:center;
-}
-
-.right{
-flex:1;
-}
-
-video{
-width:100%;
-border-radius:10px;
-border:3px solid #22c55e;
-}
-
-.card{
-background:#020617;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-}
-
-button{
-padding:10px 20px;
-margin-right:10px;
-cursor:pointer;
-border:none;
-border-radius:6px;
-background:#22c55e;
-color:black;
-font-weight:bold;
-}
-
-.progress{
-width:100%;
-background:#1e293b;
-border-radius:5px;
-margin-top:10px;
-}
-
-.progress-bar{
-height:20px;
-background:#22c55e;
-width:0%;
-border-radius:5px;
-transition:width 0.4s;
-}
-
-#chart{
-margin-top:20px;
-}
-
-#progressTracker{
-margin-top:10px;
-font-size:16px;
-color:#22c55e;
-}
-
-</style>
-
 </head>
-
 
 <body>
 
-<header>ImpressAR Interview Practice</header>
+<header>
+<h1>ImpressAR Interview Trainer</h1>
+</header>
 
-<div class="container">
+<div class="dashboard">
 
-<div class="left">
+<!-- LEFT SIDE CAMERA -->
+
+<div class="camera-section">
 
 <video id="video" autoplay playsinline></video>
+
+<div class="status-box">
+
+<p id="postureStatus">Posture: --</p>
+<p id="eyeStatus">Eye Contact: --</p>
+<p id="fidgetStatus">Fidget: --</p>
+
+</div>
 
 </div>
 
 
-<div class="right">
+<!-- RIGHT SIDE PANEL -->
+
+<div class="panel">
 
 <div class="card">
 
-<h3>Question</h3>
-
-<p id="question">Press Start Interview</p>
+<h2 id="question">Press Start Interview</h2>
 
 <p id="progressTracker"></p>
 
 </div>
 
-
 <div class="card">
 
 <h3>Timer</h3>
 
-<h2 id="timer">180</h2>
+<h1 id="timer">180</h1>
 
 </div>
-
 
 <div class="card">
 
 <h3>Confidence Score</h3>
 
-<div class="progress">
-<div id="bar" class="progress-bar"></div>
-</div>
+<div class="score-circle">
 
-<p id="score">Score: 70</p>
+<span id="scoreCircle">70</span>
 
 </div>
 
-
-<div class="card">
-
-<h3>Feedback</h3>
-
-<p id="feedback">Waiting for interview to start</p>
-
 </div>
 
+<div class="controls">
 
 <button onclick="startInterview()">Start</button>
+
 <button onclick="nextQuestion()">Next</button>
+
 <button onclick="finishInterview()">Finish</button>
 
 </div>
 
 </div>
 
-
-<div style="padding:20px">
-
-<h2 style="text-align:center">Confidence Trend</h2>
-
-<canvas id="chart"></canvas>
-
 </div>
 
 
+<div class="report-section">
+
+<h2>Confidence Trend</h2>
+
+<canvas id="chart"></canvas>
+
+<div id="report"></div>
+
+</div>
+
 <canvas id="hidden" style="display:none"></canvas>
 
-
-<script>
-
-// ---------------- VARIABLES ----------------
-
-let questions = []
-let qIndex = 0
-
-let interviewActive = false
-
-let timeLeft = 180
-let timerInterval = null
-
-let chartInstance = null
-
-const video = document.getElementById("video")
-const canvas = document.getElementById("hidden")
-const ctx = canvas.getContext("2d")
-
-const questionText = document.getElementById("question")
-const timerText = document.getElementById("timer")
-const feedbackText = document.getElementById("feedback")
-const scoreText = document.getElementById("score")
-const bar = document.getElementById("bar")
-const progressTracker = document.getElementById("progressTracker")
-
-
-// ---------------- WEBCAM ----------------
-
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-    video.srcObject = stream
-})
-
-
-// ---------------- START INTERVIEW ----------------
-
-function startInterview(){
-
-if(timerInterval) clearInterval(timerInterval)
-
-fetch("/questions")
-.then(res => res.json())
-.then(data => {
-
-questions = data.questions
-qIndex = 0
-
-questionText.innerText = questions[qIndex]
-
-progressTracker.innerText =
-"Question " + (qIndex+1) + " / " + questions.length
-
-})
-
-interviewActive = true
-timeLeft = 180
-
-timerInterval = setInterval(()=>{
-
-if(!interviewActive) return
-
-if(timeLeft <= 0){
-
-clearInterval(timerInterval)
-finishInterview()
-return
-
-}
-
-timerText.innerText = timeLeft + " seconds"
-timeLeft--
-
-},1000)
-
-}
-
-
-// ---------------- NEXT QUESTION ----------------
-
-function nextQuestion(){
-
-if(!interviewActive) return
-
-if(qIndex < questions.length - 1){
-
-qIndex++
-
-questionText.innerText = questions[qIndex]
-
-progressTracker.innerText =
-"Question " + (qIndex+1) + " / " + questions.length
-
-}
-
-}
-
-
-// ---------------- FINISH INTERVIEW ----------------
-
-function finishInterview(){
-
-interviewActive = false
-
-if(timerInterval) clearInterval(timerInterval)
-
-fetch("/report")
-.then(res => res.json())
-.then(data => {
-
-questionText.innerText =
-"🎉 Hurray! You completed the interview!"
-
-progressTracker.innerText = "Interview Completed"
-
-
-feedbackText.innerHTML =
-
-`
-<h2>Interview Report</h2>
-
-<p><b>Overall Confidence Score:</b> ${data.average_score}</p>
-
-<p><b>Posture Stability:</b> ${data.posture_score}%</p>
-
-<p><b>Eye Contact:</b> ${data.eye_score}%</p>
-
-<p><b>Fidget Level:</b> ${data.fidget_ratio}%</p>
-
-<p><b>Movement Intensity:</b> ${data.movement}</p>
-
-<h3>AI Suggestions</h3>
-
-<ul>
-${data.suggestions.map(s=>`<li>${s}</li>`).join("")}
-</ul>
-`
-
-scoreText.innerText = "Interview Completed"
-
-bar.style.width = data.average_score + "%"
-
-drawChart(data.trend)
-
-})
-
-.catch(err => {
-console.error("Report error:", err)
-})
-
-}
-
-
-// ---------------- DRAW CHART ----------------
-
-function drawChart(scores){
-
-const ctxChart = document.getElementById("chart").getContext("2d")
-
-// destroy previous chart if exists
-if(chartInstance){
-chartInstance.destroy()
-}
-
-chartInstance = new Chart(ctxChart, {
-
-type: "line",
-
-data: {
-
-labels: scores.map((_,i)=>i+1),
-
-datasets: [{
-
-label: "Confidence Trend",
-
-data: scores,
-
-borderColor: "#22c55e",
-
-backgroundColor: "rgba(34,197,94,0.2)",
-
-fill: true,
-
-tension: 0.4
-
-}]
-
-},
-
-options: {
-
-responsive: true,
-
-scales: {
-y: {
-min: 0,
-max: 100
-}
-}
-
-}
-
-})
-
-}
-
-
-// ---------------- FRAME ANALYSIS LOOP ----------------
-
-setInterval(()=>{
-
-if(!interviewActive) return
-if(!video.videoWidth) return
-
-canvas.width = video.videoWidth
-canvas.height = video.videoHeight
-
-ctx.drawImage(video,0,0)
-
-const img = canvas.toDataURL("image/jpeg")
-
-fetch("/analyze", {
-
-method: "POST",
-
-headers: {
-"Content-Type": "application/json"
-},
-
-body: JSON.stringify({
-image: img
-})
-
-})
-
-.then(res => res.json())
-
-.then(data => {
-
-feedbackText.innerText = data.feedback
-
-scoreText.innerText = "Score: " + data.score
-
-bar.style.width = data.score + "%"
-
-})
-
-.catch(err => console.error("Analyze error:", err))
-
-},800)
-
-</script>
+<script src="/static/script.js"></script>
 
 </body>
 
