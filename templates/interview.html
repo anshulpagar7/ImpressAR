@@ -3,124 +3,47 @@
 
 <head>
 
-<title>ImpressAR Interview</title>
+<title>Interview</title>
 
 <link rel="stylesheet" href="/static/style.css">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
 
 </head>
 
 <body>
 
-<header>
-
-<div class="logo">
-<i data-lucide="brain"></i>
-ImpressAR
-</div>
-
-</header>
-
-
 <div class="interview-container">
 
 <!-- CAMERA -->
-
 <div class="camera-box">
 
 <video id="video" autoplay playsinline></video>
 
-<div class="overlay">
-
-<p id="feedback">AI Monitoring...</p>
-
 </div>
 
-</div>
-
-
-<!-- AI PANEL -->
-
-<div class="ai-panel">
-
-<div class="card">
+<!-- PANEL -->
+<div class="panel">
 
 <h2 id="question">Press Start Interview</h2>
 
-<p id="progressTracker"></p>
+<p id="timer">180</p>
 
-</div>
-
-
-<div class="card">
-
-<h3>Timer</h3>
-<h1 id="timer">180</h1>
-
-</div>
-
-
-<div class="card">
-
-<h3>Confidence</h3>
-
-<div class="score-circle">
-<span id="scoreCircle">70</span>
-</div>
-
-</div>
-
-
-<div class="card status-card">
+<div class="circle" id="scoreCircle">70</div>
 
 <p id="postureStatus">Posture: --</p>
 <p id="eyeStatus">Eye: --</p>
 <p id="fidgetStatus">Fidget: --</p>
 
-</div>
-
-
-<div class="controls">
-
-<button onclick="startInterview()">
-
-<i data-lucide="play"></i>
-Start
-
-</button>
-
-<button onclick="nextQuestion()">
-
-<i data-lucide="arrow-right"></i>
-Next
-
-</button>
-
-<button onclick="finishInterview()">
-
-<i data-lucide="check"></i>
-Finish
-
-</button>
+<button onclick="startInterview()">Start</button>
+<button onclick="nextQuestion()">Next</button>
+<button onclick="finishInterview()">Finish</button>
 
 </div>
 
 </div>
 
-</div>
-
-
-<canvas id="hidden" style="display:none"></canvas>
+<canvas id="hidden" style="display:none;"></canvas>
 
 <script src="/static/script.js"></script>
-
-<script>
-lucide.createIcons()
-</script>
 
 </body>
 

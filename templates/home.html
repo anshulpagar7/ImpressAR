@@ -7,9 +7,98 @@
 
 <link rel="stylesheet" href="/static/style.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+body{
+    margin:0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* HEADER */
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 50px;
+}
+
+.logo{
+    font-size:20px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.nav-buttons button{
+    margin-left:15px;
+}
+
+/* HERO */
+.hero{
+    text-align:center;
+    padding:80px 20px 50px;
+}
+
+.welcome{
+    font-size:16px;
+    color:#ccc;
+    margin-bottom:10px;
+}
+
+.hero h1{
+    font-size:42px;
+    margin:10px 0;
+    font-weight:700;
+}
+
+.hero p{
+    font-size:16px;
+    color:#aaa;
+    max-width:600px;
+    margin:auto;
+}
+
+.hero button{
+    margin-top:25px;
+    padding:14px 28px;
+    font-size:16px;
+    border-radius:8px;
+}
+
+/* FEATURES GRID */
+.features{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:25px;
+    padding:50px 80px;
+}
+
+.card{
+    padding:25px;
+    border-radius:12px;
+    transition:0.3s ease;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card h3{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.card p{
+    font-size:14px;
+    color:#ccc;
+}
+</style>
 
 </head>
 
@@ -23,13 +112,9 @@ ImpressAR
 </div>
 
 <div class="nav-buttons">
-
 <button onclick="location.href='/home'">Home</button>
-
 <button onclick="location.href='/interview'">Interview</button>
-
 <button onclick="location.href='/add_questions'">Add Questions</button>
-
 </div>
 
 </header>
@@ -44,19 +129,16 @@ Welcome, {{name}} 👋
 </h2>
 
 <h1>
-AI Powered Interview Training
+Master Your Interviews with AI
 </h1>
 
 <p>
-Practice interviews with real-time body language
-analysis and AI-generated feedback.
+Get real-time feedback on posture, eye contact, and confidence to improve your interview performance.
 </p>
 
 <button onclick="location.href='/interview'">
-
 <i data-lucide="play"></i>
-Start Practice
-
+Start Interview
 </button>
 
 </section>
@@ -67,58 +149,33 @@ Start Practice
 <section class="features">
 
 <div class="card">
-
-<h3>
-<i data-lucide="activity"></i>
-Posture Detection
-</h3>
-
-<p>
-AI tracks your posture during interviews and alerts you when you slouch.
-</p>
-
+<h3><i data-lucide="activity"></i> Posture Detection</h3>
+<p>Detects body alignment and ensures you sit straight during interviews.</p>
 </div>
 
-
 <div class="card">
-
-<h3>
-<i data-lucide="eye"></i>
-Eye Contact Tracking
-</h3>
-
-<p>
-Ensure strong engagement by maintaining eye contact.
-</p>
-
+<h3><i data-lucide="eye"></i> Eye Contact Tracking</h3>
+<p>Monitors your gaze to maintain strong engagement.</p>
 </div>
 
-
 <div class="card">
-
-<h3>
-<i data-lucide="chart-line"></i>
-Confidence Analysis
-</h3>
-
-<p>
-Confidence scores are calculated throughout your interview session.
-</p>
-
+<h3><i data-lucide="zap"></i> Confidence Score</h3>
+<p>Calculates real-time confidence based on your behavior.</p>
 </div>
 
+<div class="card">
+<h3><i data-lucide="hand"></i> Fidget Detection</h3>
+<p>Detects unnecessary hand movements and distractions.</p>
+</div>
 
 <div class="card">
+<h3><i data-lucide="brain"></i> AI Suggestions</h3>
+<p>Get smart recommendations to improve your performance.</p>
+</div>
 
-<h3>
-<i data-lucide="brain"></i>
-AI Suggestions
-</h3>
-
-<p>
-Receive actionable insights to improve your interview performance.
-</p>
-
+<div class="card">
+<h3><i data-lucide="bar-chart"></i> Performance Report</h3>
+<p>View detailed analytics after each interview session.</p>
 </div>
 
 </section>
