@@ -1,3 +1,4 @@
+/* RESET */
 *{
 margin:0;
 padding:0;
@@ -13,7 +14,6 @@ background-color:#1b120a;
 }
 
 /* BORDER */
-
 body::before{
 content:"";
 position:fixed;
@@ -21,22 +21,30 @@ top:0;
 left:0;
 right:0;
 bottom:0;
-border:12px solid #5c3a21;
+border:10px solid #5c3a21;
 pointer-events:none;
 }
 
 /* HEADER */
-
 header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:25px 60px;
-background:rgba(0,0,0,0.4);
+padding:20px 60px;
+background:rgba(0,0,0,0.45);
+backdrop-filter:blur(8px);
 }
 
-/* NAV BUTTONS */
+/* LOGO */
+.logo{
+font-size:20px;
+font-weight:600;
+display:flex;
+align-items:center;
+gap:8px;
+}
 
+/* NAV */
 .nav-buttons button{
 margin-left:12px;
 padding:8px 16px;
@@ -53,22 +61,31 @@ color:black;
 }
 
 /* HERO */
-
 .hero{
 text-align:center;
 margin-top:80px;
+padding:20px;
+}
+
+.hero h1{
+font-size:42px;
+margin:10px 0;
+}
+
+.hero p{
+color:#ccc;
+max-width:600px;
+margin:auto;
 }
 
 /* WELCOME */
-
 .welcome{
-font-size:22px;
+font-size:20px;
 color:#c79b5b;
 margin-bottom:10px;
 }
 
 /* BUTTON */
-
 button{
 padding:12px 20px;
 border:none;
@@ -76,21 +93,30 @@ border-radius:8px;
 background:#c79b5b;
 color:black;
 cursor:pointer;
+transition:0.3s;
 }
 
-/* CARDS */
+button:hover{
+background:#e0b56d;
+}
 
+/* CARDS (GLASS EFFECT 🔥) */
 .card{
 background:rgba(255,255,255,0.06);
 padding:25px;
-border-radius:12px;
+border-radius:14px;
+backdrop-filter:blur(10px);
+transition:0.3s;
 }
 
-/* FEATURES */
+.card:hover{
+transform:translateY(-5px);
+}
 
+/* FEATURES GRID */
 .features{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+grid-template-columns:repeat(3,1fr);
 gap:25px;
 padding:60px;
 max-width:1100px;
@@ -98,7 +124,6 @@ margin:auto;
 }
 
 /* LOGIN */
-
 .login-container{
 display:flex;
 justify-content:center;
@@ -106,13 +131,108 @@ align-items:center;
 height:100vh;
 }
 
-.login-card input,
-.login-card select{
+.login-card{
+width:360px;
+}
+
+/* INTERVIEW LAYOUT */
+.interview-container{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:25px;
+padding:20px 60px;
+}
+
+/* CAMERA */
+.camera-box{
+position:relative;
+border-radius:12px;
+overflow:hidden;
+}
+
+video{
 width:100%;
-padding:10px;
-margin:10px 0;
-border-radius:6px;
-border:none;
+border-radius:12px;
+}
+
+.overlay{
+position:absolute;
+bottom:10px;
+left:10px;
+background:rgba(0,0,0,0.6);
+padding:8px 12px;
+border-radius:8px;
+font-size:14px;
+}
+
+/* AI PANEL */
+.ai-panel{
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+/* TIMER */
+#timer{
+font-size:36px;
+text-align:center;
+}
+
+/* CONTROLS */
+.controls{
+display:flex;
+gap:10px;
+}
+
+.controls button{
+flex:1;
+}
+
+/* ------------------ */
+/* 💧 CONFIDENCE CIRCLE */
+/* ------------------ */
+
+.score-circle{
+position:relative;
+width:120px;
+height:120px;
+border-radius:50%;
+margin:auto;
 background:#0f172a;
-color:white;
+overflow:hidden;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* water */
+.score-circle::before{
+content:"";
+position:absolute;
+width:200%;
+height:200%;
+background:#c79b5b;
+top:100%;
+left:-50%;
+border-radius:40%;
+animation:wave 4s infinite linear;
+transition:top 0.5s ease;
+}
+
+/* number */
+.score-circle span{
+position:relative;
+z-index:2;
+font-size:26px;
+font-weight:600;
+}
+
+/* wave animation */
+@keyframes wave{
+0%{
+transform:rotate(0deg);
+}
+100%{
+transform:rotate(360deg);
+}
 }
