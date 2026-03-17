@@ -7,38 +7,45 @@
 
 <link rel="stylesheet" href="/static/style.css">
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 
 </head>
 
 <body>
 
 <header>
-<h1>ImpressAR Interview Trainer</h1>
+
+<div class="logo">
+<i data-lucide="brain"></i>
+ImpressAR
+</div>
+
 </header>
 
-<div class="dashboard">
 
-<!-- LEFT SIDE CAMERA -->
+<div class="interview-container">
 
-<div class="camera-section">
+<!-- CAMERA -->
+
+<div class="camera-box">
 
 <video id="video" autoplay playsinline></video>
 
-<div class="status-box">
+<div class="overlay">
 
-<p id="postureStatus">Posture: --</p>
-<p id="eyeStatus">Eye Contact: --</p>
-<p id="fidgetStatus">Fidget: --</p>
+<p id="feedback">AI Monitoring...</p>
 
 </div>
 
 </div>
 
 
-<!-- RIGHT SIDE PANEL -->
+<!-- AI PANEL -->
 
-<div class="panel">
+<div class="ai-panel">
 
 <div class="card">
 
@@ -48,33 +55,57 @@
 
 </div>
 
+
 <div class="card">
 
 <h3>Timer</h3>
-
 <h1 id="timer">180</h1>
 
 </div>
 
+
 <div class="card">
 
-<h3>Confidence Score</h3>
+<h3>Confidence</h3>
 
 <div class="score-circle">
-
 <span id="scoreCircle">70</span>
-
 </div>
 
 </div>
+
+
+<div class="card status-card">
+
+<p id="postureStatus">Posture: --</p>
+<p id="eyeStatus">Eye: --</p>
+<p id="fidgetStatus">Fidget: --</p>
+
+</div>
+
 
 <div class="controls">
 
-<button onclick="startInterview()">Start</button>
+<button onclick="startInterview()">
 
-<button onclick="nextQuestion()">Next</button>
+<i data-lucide="play"></i>
+Start
 
-<button onclick="finishInterview()">Finish</button>
+</button>
+
+<button onclick="nextQuestion()">
+
+<i data-lucide="arrow-right"></i>
+Next
+
+</button>
+
+<button onclick="finishInterview()">
+
+<i data-lucide="check"></i>
+Finish
+
+</button>
 
 </div>
 
@@ -82,20 +113,14 @@
 
 </div>
 
-
-<div class="report-section">
-
-<h2>Confidence Trend</h2>
-
-<canvas id="chart"></canvas>
-
-<div id="report"></div>
-
-</div>
 
 <canvas id="hidden" style="display:none"></canvas>
 
 <script src="/static/script.js"></script>
+
+<script>
+lucide.createIcons()
+</script>
 
 </body>
 
