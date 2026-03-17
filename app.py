@@ -39,12 +39,11 @@ head_move_frames = 0
 
 INTRO_QUESTIONS = [
 "What is your name?",
-"What are you currently studying or working on?",
-"What are your strongest technical skills?"
+"What are you currently studying?",
+"What are your strongest skills?"
 ]
 
 RANDOM_QUESTIONS = [
-
 "Tell me about yourself",
 "Why should we hire you",
 "What motivates you",
@@ -53,27 +52,17 @@ RANDOM_QUESTIONS = [
 "What are your weaknesses",
 "Where do you see yourself in 5 years",
 "Tell me about a leadership experience",
-"Describe a difficult project you worked on",
+"Describe a difficult project",
 "How do you handle pressure",
-"Tell me about a time you failed",
+"Tell me about a failure",
 "How do you prioritize tasks",
 "How do you learn new technologies",
-"Tell me about teamwork experience",
-"What is a mistake you learned from",
-"How do you stay productive",
-"What is your dream job",
-"What do you know about our company",
-"Why should we hire you over others",
-"What skills are you improving",
-"How do you deal with criticism",
-"Describe a conflict you resolved",
+"Tell me about teamwork",
 "What is your biggest achievement",
-"What makes you unique",
-"Describe a difficult deadline you handled"
-
+"What makes you unique"
 ]
 
-# ---------------- BASIC PAGES ----------------
+# ---------------- ROUTES ----------------
 
 @app.route("/")
 def login():
@@ -82,7 +71,8 @@ def login():
 
 @app.route("/home")
 def home():
-    return render_template("home.html")
+    name = request.args.get("name", "User")
+    return render_template("home.html", name=name)
 
 
 @app.route("/interview")
@@ -95,7 +85,7 @@ def add_questions():
     return render_template("add_questions.html")
 
 
-# ---------------- SAVE COMMUNITY QUESTIONS ----------------
+# ---------------- SAVE QUESTIONS ----------------
 
 @app.route("/save_questions", methods=["POST"])
 def save_questions():
@@ -104,25 +94,23 @@ def save_questions():
 
     for q in questions:
         q = q.strip()
-        if q != "":
+        if q:
             RANDOM_QUESTIONS.append(q)
 
     return redirect("/home")
 
 
-# ---------------- QUESTION GENERATOR ----------------
+# ---------------- GET QUESTIONS ----------------
 
 @app.route("/questions")
 def questions():
-
     selected_random = random.sample(RANDOM_QUESTIONS, 7)
-
     return jsonify({
         "questions": INTRO_QUESTIONS + selected_random
     })
 
 
-# ---------------- FRAME ANALYSIS ----------------
+# ---------------- ANALYZE ----------------
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -147,34 +135,25 @@ def analyze():
 
     total_frames += 1
 
-    # -------- POSTURE DETECTION --------
-
+    # POSTURE
     pose_results = pose.process(rgb)
-
     if pose_results.pose_landmarks:
-
-        left = pose_results.pose_landmarks.landmark[11]
-        right = pose_results.pose_landmarks.landmark[12]
-
-        if abs(left.y - right.y) > 0.05:
+        l = pose_results.pose_landmarks.landmark[11]
+        r = pose_results.pose_landmarks.landmark[12]
+        if abs(l.y - r.y) > 0.05:
             posture_feedback = "Sit straight"
         else:
             good_posture_frames += 1
 
-
-    # -------- FACE ANALYSIS --------
-
+    # FACE
     face_results = face_mesh.process(rgb)
-
     if face_results.multi_face_landmarks:
-
         face = face_results.multi_face_landmarks[0]
-
         nose = face.landmark[1]
-        left_eye = face.landmark[33]
-        right_eye = face.landmark[263]
+        le = face.landmark[33]
+        re = face.landmark[263]
 
-        center = (left_eye.x + right_eye.x) / 2
+        center = (le.x + re.x) / 2
 
         if abs(nose.x - center) > 0.05:
             eye_feedback = "Maintain eye contact"
@@ -182,30 +161,20 @@ def analyze():
             good_eye_frames += 1
 
         if previous_nose_x is not None:
-
-            head_move = abs(nose.x - previous_nose_x)
-
-            if head_move > 0.015:
+            if abs(nose.x - previous_nose_x) > 0.015:
                 head_move_frames += 1
 
         previous_nose_x = nose.x
 
-
-    # -------- HAND / FIDGET DETECTION --------
-
+    # HAND
     hand_results = hands.process(rgb)
-
     if hand_results.multi_hand_landmarks:
-
         hand = hand_results.multi_hand_landmarks[0]
-
         wrist = hand.landmark[0]
 
-        cx = wrist.x
-        cy = wrist.y
+        cx, cy = wrist.x, wrist.y
 
         if previous_hand_x is not None:
-
             movement = math.sqrt(
                 (cx - previous_hand_x) ** 2 +
                 (cy - previous_hand_y) ** 2
@@ -217,12 +186,9 @@ def analyze():
                 fidget_feedback = "Don't fidget"
                 fidget_frames += 1
 
-        previous_hand_x = cx
-        previous_hand_y = cy
+        previous_hand_x, previous_hand_y = cx, cy
 
-
-    # -------- CONFIDENCE SCORING --------
-
+    # SCORE
     if posture_feedback == "Good posture":
         confidence_score += 0.08
     else:
@@ -242,10 +208,8 @@ def analyze():
 
     session_scores.append(confidence_score)
 
-    feedback = f"{posture_feedback} | {eye_feedback} | {fidget_feedback}"
-
     return jsonify({
-        "feedback": feedback,
+        "feedback": f"{posture_feedback} | {eye_feedback} | {fidget_feedback}",
         "score": round(confidence_score, 2)
     })
 
@@ -255,51 +219,41 @@ def analyze():
 @app.route("/report_page")
 def report_page():
 
-    global total_frames, good_posture_frames
-    global good_eye_frames, fidget_frames
-    global movement_total, session_scores
-    global head_move_frames
-
     if total_frames == 0:
         return redirect("/home")
 
-    posture_score = (good_posture_frames / total_frames) * 100
-    eye_score = (good_eye_frames / total_frames) * 100
-    fidget_ratio = (fidget_frames / total_frames) * 100
-    head_movement = (head_move_frames / total_frames) * 100
+    posture = (good_posture_frames / total_frames) * 100
+    eye = (good_eye_frames / total_frames) * 100
+    fidget = (fidget_frames / total_frames) * 100
+    head = (head_move_frames / total_frames) * 100
 
-    avg_score = sum(session_scores) / len(session_scores)
+    avg = sum(session_scores) / len(session_scores)
 
     suggestions = []
 
-    if posture_score < 80:
-        suggestions.append("Maintain a straight posture with relaxed shoulders.")
+    if posture < 80:
+        suggestions.append("Improve posture")
+    if eye < 80:
+        suggestions.append("Maintain eye contact")
+    if fidget > 25:
+        suggestions.append("Reduce hand movement")
 
-    if eye_score < 80:
-        suggestions.append("Look closer to the webcam to simulate stronger eye contact.")
-
-    if fidget_ratio > 25:
-        suggestions.append("Reduce unnecessary hand movement while answering.")
-
-    if head_movement > 25:
-        suggestions.append("Avoid excessive head movement.")
-
-    if len(suggestions) == 0:
-        suggestions.append("Excellent body language. Continue practicing.")
+    if not suggestions:
+        suggestions.append("Excellent performance")
 
     return render_template(
         "report.html",
-        avg=round(avg_score, 2),
-        posture=round(posture_score, 2),
-        eye=round(eye_score, 2),
-        fidget=round(fidget_ratio, 2),
-        head=round(head_movement, 2),
+        avg=round(avg, 2),
+        posture=round(posture, 2),
+        eye=round(eye, 2),
+        fidget=round(fidget, 2),
+        head=round(head, 2),
         suggestions=suggestions,
         trend=session_scores
     )
 
 
-# ---------------- RESET SESSION ----------------
+# ---------------- RESET ----------------
 
 @app.route("/reset")
 def reset():
@@ -310,20 +264,18 @@ def reset():
     global head_move_frames, confidence_score
 
     session_scores = []
-
     total_frames = 0
     good_posture_frames = 0
     good_eye_frames = 0
     fidget_frames = 0
     movement_total = 0
     head_move_frames = 0
-
     confidence_score = 70
 
     return jsonify({"status": "reset"})
 
 
-# ---------------- RUN SERVER ----------------
+# ---------------- RUN ----------------
 
 if __name__ == "__main__":
     app.run(debug=True)
