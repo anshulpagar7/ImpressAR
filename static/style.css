@@ -1,25 +1,18 @@
-/* RESET */
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 }
 
-/* BODY */
-
 body{
 font-family:'Inter',sans-serif;
 color:#e2e8f0;
-margin:0;
 
 background-image:url("https://www.transparenttextures.com/patterns/dark-wood.png");
 background-color:#1b120a;
-
-min-height:100vh;
 }
 
-/* WOOD BORDER */
+/* BORDER */
 
 body::before{
 content:"";
@@ -30,7 +23,6 @@ right:0;
 bottom:0;
 border:12px solid #5c3a21;
 pointer-events:none;
-box-shadow:inset 0 0 40px rgba(0,0,0,0.7);
 }
 
 /* HEADER */
@@ -41,48 +33,60 @@ justify-content:space-between;
 align-items:center;
 padding:25px 60px;
 background:rgba(0,0,0,0.4);
-backdrop-filter:blur(8px);
 }
 
-.logo{
+/* NAV BUTTONS */
+
+.nav-buttons button{
+margin-left:12px;
+padding:8px 16px;
+background:transparent;
+color:white;
+border:1px solid rgba(255,255,255,0.2);
+border-radius:6px;
+transition:0.3s;
+}
+
+.nav-buttons button:hover{
+background:#c79b5b;
+color:black;
+}
+
+/* HERO */
+
+.hero{
+text-align:center;
+margin-top:80px;
+}
+
+/* WELCOME */
+
+.welcome{
 font-size:22px;
-font-weight:600;
+color:#c79b5b;
+margin-bottom:10px;
 }
 
-/* BUTTONS */
+/* BUTTON */
 
 button{
-padding:12px 24px;
+padding:12px 20px;
 border:none;
 border-radius:8px;
 background:#c79b5b;
 color:black;
-font-weight:600;
 cursor:pointer;
-transition:0.3s;
-}
-
-button:hover{
-transform:translateY(-3px);
-box-shadow:0 10px 30px rgba(0,0,0,0.6);
 }
 
 /* CARDS */
 
 .card{
 background:rgba(255,255,255,0.06);
-backdrop-filter:blur(10px);
-border-radius:14px;
 padding:25px;
-border:1px solid rgba(255,255,255,0.1);
-transition:0.3s;
+border-radius:12px;
 }
 
-.card:hover{
-transform:translateY(-5px);
-}
-
-/* FEATURES GRID */
+/* FEATURES */
 
 .features{
 display:grid;
@@ -102,108 +106,13 @@ align-items:center;
 height:100vh;
 }
 
-.login-card{
-width:380px;
-text-align:center;
-}
-
 .login-card input,
 .login-card select{
 width:100%;
-padding:12px;
+padding:10px;
 margin:10px 0;
-border:none;
 border-radius:6px;
+border:none;
 background:#0f172a;
 color:white;
-}
-
-/* INTERVIEW PAGE */
-
-.interview-container{
-display:flex;
-gap:20px;
-padding:30px;
-}
-
-/* CAMERA */
-
-.camera-box{
-flex:1;
-position:relative;
-}
-
-video{
-width:100%;
-border-radius:15px;
-border:3px solid #c79b5b;
-}
-
-/* OVERLAY */
-
-.overlay{
-position:absolute;
-bottom:10px;
-left:10px;
-background:rgba(0,0,0,0.6);
-padding:10px;
-border-radius:8px;
-}
-
-/* RIGHT PANEL */
-
-.ai-panel{
-flex:1;
-display:flex;
-flex-direction:column;
-gap:15px;
-}
-
-/* STATUS */
-
-.status-card p{
-margin:6px 0;
-font-weight:500;
-}
-
-/* SCORE CIRCLE */
-
-.score-circle{
-width:120px;
-height:120px;
-border-radius:50%;
-background:#c79b5b;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:32px;
-font-weight:bold;
-margin:auto;
-}
-
-/* CONTROLS */
-
-.controls button{
-margin-right:10px;
-}
-
-/* REPORT PAGE */
-
-.report-container{
-padding:40px;
-max-width:800px;
-margin:auto;
-display:flex;
-flex-direction:column;
-gap:20px;
-}
-
-/* ICONS */
-
-i[data-lucide]{
-width:20px;
-height:20px;
-margin-right:8px;
-color:#c79b5b;
-vertical-align:middle;
 }
