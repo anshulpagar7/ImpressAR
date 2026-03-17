@@ -7,71 +7,192 @@
 
 <link rel="stylesheet" href="/static/style.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.report-container{
+max-width:1100px;
+margin:40px auto;
+padding:20px;
+display:grid;
+gap:25px;
+}
+
+/* HEADER */
+header{
+text-align:center;
+margin-top:30px;
+}
+
+header h1{
+font-size:36px;
+margin-bottom:10px;
+}
+
+/* SUMMARY GRID */
+.summary{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+/* BIG SCORE */
+.big-score{
+text-align:center;
+padding:30px;
+}
+
+.big-score h2{
+font-size:18px;
+margin-bottom:10px;
+}
+
+.big-score .value{
+font-size:48px;
+font-weight:700;
+color:#c79b5b;
+}
+
+/* METRICS */
+.metric{
+padding:20px;
+border-radius:12px;
+}
+
+.metric p{
+margin:8px 0;
+}
+
+/* SUGGESTIONS */
+.suggestions li{
+margin:10px 0;
+line-height:1.5;
+}
+
+/* QUOTE */
+.quote{
+text-align:center;
+font-style:italic;
+padding:20px;
+color:#c79b5b;
+}
+
+/* BUTTON */
+.back-btn{
+text-align:center;
+margin-top:10px;
+}
+</style>
 
 </head>
 
 <body>
 
 <header>
-
-<h1>Interview Report</h1>
-
+<h1>📊 Interview Performance Report</h1>
+<p>Your AI-powered feedback summary</p>
 </header>
 
 
 <div class="report-container">
 
-<div class="card">
+<!-- 🔥 BIG SCORE -->
+<div class="card big-score">
+<h2>Overall Confidence Score</h2>
+<div class="value">{{avg}}</div>
+<p>
+{% if avg > 80 %}
+Excellent performance! You're interview ready.
+{% elif avg > 60 %}
+Good effort! A bit more refinement will make you stand out.
+{% else %}
+Keep practicing — improvement is just a few sessions away.
+{% endif %}
+</p>
+</div>
 
-<h2>Performance Summary</h2>
 
-<p><b>Confidence Score:</b> {{avg}}</p>
+<!-- 📊 METRICS -->
+<div class="summary">
 
-<p><b>Posture Stability:</b> {{posture}}%</p>
+<div class="card metric">
+<p><b>🧍 Posture Stability</b></p>
+<p>{{posture}}%</p>
+</div>
 
-<p><b>Eye Contact:</b> {{eye}}%</p>
+<div class="card metric">
+<p><b>👁 Eye Contact</b></p>
+<p>{{eye}}%</p>
+</div>
 
-<p><b>Fidget Level:</b> {{fidget}}%</p>
+<div class="card metric">
+<p><b>🤲 Fidget Level</b></p>
+<p>{{fidget}}%</p>
+</div>
 
-<p><b>Head Movement:</b> {{head}}%</p>
+<div class="card metric">
+<p><b>🧠 Head Movement</b></p>
+<p>{{head}}%</p>
+</div>
 
 </div>
 
 
+<!-- 💡 SUGGESTIONS -->
 <div class="card">
+<h2>💡 Personalized AI Suggestions</h2>
 
-<h2>AI Suggestions</h2>
-
-<ul>
+<ul class="suggestions">
 
 {% for s in suggestions %}
-
 <li>{{s}}</li>
-
 {% endfor %}
 
+<!-- extra intelligence -->
+{% if posture < 80 %}
+<li>Maintain an upright posture with relaxed shoulders to project confidence and attentiveness.</li>
+{% endif %}
+
+{% if eye < 80 %}
+<li>Try focusing slightly above or near the webcam to simulate strong eye contact.</li>
+{% endif %}
+
+{% if fidget > 25 %}
+<li>Reduce unnecessary hand movements; controlled gestures enhance clarity and professionalism.</li>
+{% endif %}
+
+{% if head > 25 %}
+<li>Keep your head steady while speaking to appear composed and confident.</li>
+{% endif %}
+
+<li>Practice speaking slowly and clearly to improve communication impact.</li>
+<li>Record and review yourself regularly to track improvement over time.</li>
+
 </ul>
-
 </div>
 
 
+<!-- 📈 CHART -->
 <div class="card">
-
-<h2>Confidence Trend</h2>
-
+<h2>📈 Confidence Trend</h2>
 <canvas id="chart"></canvas>
-
 </div>
 
 
+<!-- ✨ QUOTE -->
+<div class="card quote">
+"Success in interviews isn’t about being perfect — it’s about being prepared, confident, and authentic."
+</div>
+
+
+<!-- 🔙 BUTTON -->
+<div class="back-btn">
 <button onclick="location.href='/home'">
-
 Return Home
-
 </button>
+</div>
 
 </div>
 
@@ -88,19 +209,28 @@ data:{
 labels:trend.map((_,i)=>i+1),
 
 datasets:[{
-
 label:"Confidence Trend",
-
 data:trend,
-
 borderColor:"#c79b5b",
-
 backgroundColor:"rgba(199,155,91,0.2)",
-
-fill:true
-
+fill:true,
+tension:0.3
 }]
 
+},
+
+options:{
+plugins:{
+legend:{
+display:false
+}
+},
+scales:{
+y:{
+beginAtZero:true,
+max:100
+}
+}
 }
 
 })
