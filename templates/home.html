@@ -22,27 +22,28 @@
 ImpressAR
 </div>
 
-<nav>
+<nav class="nav-buttons">
 
-<a href="/home">Home</a>
-<a href="/interview">Interview</a>
-<a href="/add_questions">Add Questions</a>
+<button onclick="location.href='/home'">Home</button>
+<button onclick="location.href='/interview'">Interview</button>
+<button onclick="location.href='/add_questions'">Add Questions</button>
 
 </nav>
 
 </header>
 
 
+<!-- HERO -->
+
 <section class="hero">
 
-<h1>
-AI Powered Interview Training
-</h1>
+<h1>AI Powered Interview Training</h1>
 
 <p>
-Practice interviews with real-time body language
-analysis and AI-generated feedback.
+Practice interviews with real-time body language analysis and AI-generated feedback.
 </p>
+
+<h3 id="welcomeText"></h3>
 
 <button onclick="location.href='/interview'">
 
@@ -54,21 +55,19 @@ Start Practice
 </section>
 
 
+<!-- FEATURES -->
+
 <section class="features">
 
 <div class="card">
 
 <h3>
-
 <i data-lucide="activity"></i>
-
 Posture Detection
-
 </h3>
 
 <p>
-AI tracks your posture during interviews
-and alerts you when you slouch.
+AI tracks your posture during interviews and alerts you when you slouch.
 </p>
 
 </div>
@@ -77,16 +76,12 @@ and alerts you when you slouch.
 <div class="card">
 
 <h3>
-
 <i data-lucide="eye"></i>
-
 Eye Contact Tracking
-
 </h3>
 
 <p>
-Ensure strong engagement by
-maintaining eye contact.
+Ensure strong engagement by maintaining eye contact.
 </p>
 
 </div>
@@ -95,16 +90,12 @@ maintaining eye contact.
 <div class="card">
 
 <h3>
-
 <i data-lucide="chart-line"></i>
-
 Confidence Analysis
-
 </h3>
 
 <p>
-Confidence scores are calculated
-throughout your interview session.
+Confidence scores are calculated throughout your interview session.
 </p>
 
 </div>
@@ -113,16 +104,12 @@ throughout your interview session.
 <div class="card">
 
 <h3>
-
 <i data-lucide="brain"></i>
-
 AI Suggestions
-
 </h3>
 
 <p>
-Receive actionable insights
-to improve your interview performance.
+Receive actionable insights to improve your interview performance.
 </p>
 
 </div>
@@ -131,7 +118,17 @@ to improve your interview performance.
 
 
 <script>
+
+// welcome message
+
+const name = localStorage.getItem("username")
+
+if(name){
+document.getElementById("welcomeText").innerText = "Welcome " + name + " 👋"
+}
+
 lucide.createIcons()
+
 </script>
 
 </body>
