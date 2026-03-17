@@ -22,13 +22,15 @@
 ImpressAR
 </div>
 
-<nav class="nav-buttons">
+<div class="nav-buttons">
 
 <button onclick="location.href='/home'">Home</button>
+
 <button onclick="location.href='/interview'">Interview</button>
+
 <button onclick="location.href='/add_questions'">Add Questions</button>
 
-</nav>
+</div>
 
 </header>
 
@@ -37,13 +39,18 @@ ImpressAR
 
 <section class="hero">
 
-<h1>AI Powered Interview Training</h1>
+<h2 class="welcome">
+Welcome, {{name}} 👋
+</h2>
+
+<h1>
+AI Powered Interview Training
+</h1>
 
 <p>
-Practice interviews with real-time body language analysis and AI-generated feedback.
+Practice interviews with real-time body language
+analysis and AI-generated feedback.
 </p>
-
-<h3 id="welcomeText"></h3>
 
 <button onclick="location.href='/interview'">
 
@@ -118,17 +125,7 @@ Receive actionable insights to improve your interview performance.
 
 
 <script>
-
-// welcome message
-
-const name = localStorage.getItem("username")
-
-if(name){
-document.getElementById("welcomeText").innerText = "Welcome " + name + " 👋"
-}
-
 lucide.createIcons()
-
 </script>
 
 </body>
