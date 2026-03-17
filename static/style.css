@@ -80,9 +80,11 @@ margin:auto;
 
 /* WELCOME */
 .welcome{
-font-size:20px;
+font-size:28px;
+font-weight:600;
 color:#c79b5b;
-margin-bottom:10px;
+margin-bottom:15px;
+letter-spacing:0.5px;
 }
 
 /* BUTTON */
