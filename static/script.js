@@ -14,7 +14,8 @@ const ctx = canvas.getContext("2d")
 
 const questionText = document.getElementById("question")
 const timerText = document.getElementById("timer")
-const scoreCircle = document.getElementById("scoreCircle")
+const scoreCircleText = document.getElementById("scoreCircle")
+const scoreCircle = document.querySelector(".score-circle")
 
 const postureStatus = document.getElementById("postureStatus")
 const eyeStatus = document.getElementById("eyeStatus")
@@ -43,33 +44,45 @@ fetch("/questions")
 questions = data.questions
 qIndex = 0
 
-questionText.innerText = questions[qIndex]
-
-progressTracker.innerText =
-"Question " + (qIndex+1) + " / " + questions.length
+updateQuestion()
 
 })
 
 interviewActive = true
 timeLeft = 180
 
+timerText.innerText = timeLeft
+
 timerInterval = setInterval(()=>{
 
 if(!interviewActive) return
 
 if(timeLeft <= 0){
-
 finishInterview()
 clearInterval(timerInterval)
 return
-
 }
 
-timerText.innerText = timeLeft
 timeLeft--
+timerText.innerText = timeLeft
 
 },1000)
 
+}
+
+// ---------------- UPDATE QUESTION ----------------
+
+function updateQuestion(){
+questionText.style.opacity = 0
+
+setTimeout(()=>{
+    questionText.innerText = questions[qIndex]
+
+    progressTracker.innerText =
+    "Question " + (qIndex+1) + " / " + questions.length
+
+    questionText.style.opacity = 1
+},200)
 }
 
 // ---------------- NEXT QUESTION ----------------
@@ -77,14 +90,8 @@ timeLeft--
 function nextQuestion(){
 
 if(qIndex < questions.length - 1){
-
 qIndex++
-
-questionText.innerText = questions[qIndex]
-
-progressTracker.innerText =
-"Question " + (qIndex+1) + " / " + questions.length
-
+updateQuestion()
 }
 
 }
@@ -92,11 +99,8 @@ progressTracker.innerText =
 // ---------------- FINISH ----------------
 
 function finishInterview(){
-
 interviewActive = false
-
 window.location.href = "/report_page"
-
 }
 
 // ---------------- STATUS COLORS ----------------
@@ -110,6 +114,41 @@ element.style.color = "#22c55e"
 }
 else{
 element.style.color = "#ef4444"
+}
+
+// smooth glow effect 🔥
+element.style.transition = "0.3s"
+element.style.transform = "scale(1.05)"
+
+setTimeout(()=>{
+    element.style.transform = "scale(1)"
+},150)
+
+}
+
+// ---------------- 💧 CONFIDENCE WATER ANIMATION ----------------
+
+function updateScore(score){
+
+scoreCircleText.innerText = score
+
+let level = 100 - score
+
+// update water level
+scoreCircle.style.setProperty("--water-level", level + "%")
+
+// directly control pseudo element
+scoreCircle.style.setProperty("--top", level + "%")
+
+// color shift based on score 🔥
+if(score > 75){
+    scoreCircle.style.background = "#022c22"
+}
+else if(score > 50){
+    scoreCircle.style.background = "#3f2e05"
+}
+else{
+    scoreCircle.style.background = "#2b0a0a"
 }
 
 }
@@ -141,19 +180,25 @@ image: img
 })
 
 })
-
 .then(r => r.json())
 .then(data => {
 
-scoreCircle.innerText = data.score
+updateScore(data.score)
 
+// split feedback
 let parts = data.feedback.split("|")
 
 colorStatus(postureStatus, "Posture: " + parts[0])
 colorStatus(eyeStatus, "Eye: " + parts[1])
 colorStatus(fidgetStatus, "Fidget: " + parts[2])
 
-feedbackText.innerText = data.feedback
+// smooth text update
+feedbackText.style.opacity = 0
+
+setTimeout(()=>{
+    feedbackText.innerText = data.feedback
+    feedbackText.style.opacity = 1
+},200)
 
 })
 
