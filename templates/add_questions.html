@@ -2,24 +2,110 @@
 <html>
 
 <head>
+
 <title>Add Interview Questions</title>
+
 <link rel="stylesheet" href="/static/style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+.center-container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.center-card{
+    width:500px;
+    padding:30px;
+    text-align:center;
+}
+
+.center-card h2{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.helper-text{
+    font-size:13px;
+    color:#aaa;
+    margin-bottom:15px;
+}
+
+textarea{
+    width:100%;
+    padding:15px;
+    border-radius:8px;
+    border:none;
+    background:#0f172a;
+    color:white;
+    resize:none;
+    font-size:14px;
+    margin-top:10px;
+}
+
+textarea:focus{
+    outline:2px solid #c79b5b;
+}
+
+.submit-btn{
+    width:100%;
+    margin-top:20px;
+}
+</style>
+
 </head>
 
 <body>
 
-<div class="center-card">
+<header>
 
-<h2>Add Interview Questions</h2>
+<div class="logo">
+<i data-lucide="brain"></i>
+ImpressAR
+</div>
+
+<div class="nav-buttons">
+<button onclick="location.href='/home'">Home</button>
+<button onclick="location.href='/interview'">Interview</button>
+</div>
+
+</header>
+
+<div class="center-container">
+
+<div class="card center-card">
+
+<h2>
+<i data-lucide="plus-circle"></i>
+Add Interview Questions
+</h2>
+
+<p class="helper-text">
+Add custom questions to expand your practice set.<br>
+(One question per line)
+</p>
 
 <form action="/save_questions" method="POST">
 
 <textarea name="questions"
 rows="10"
-placeholder="Paste questions here (one per line)">
+placeholder="Example:
+Tell me about yourself
+What are your strengths?
+Why should we hire you?"
+required>
 </textarea>
 
-<button type="submit">
+<button type="submit" class="submit-btn">
+<i data-lucide="send"></i>
 Submit Questions
 </button>
 
@@ -27,5 +113,12 @@ Submit Questions
 
 </div>
 
+</div>
+
+<script>
+lucide.createIcons()
+</script>
+
 </body>
+
 </html>
