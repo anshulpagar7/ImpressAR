@@ -7,6 +7,7 @@ import { Sparkline } from "../components/charts";
 import { initVision, analyzeFrame } from "../lib/visionEngine";
 import { createScoring, beginQuestion, tick, summarize, buildSuggestions } from "../lib/scoring";
 import { createSpeechTracker, transcriptsByQuestion } from "../lib/speech";
+import { generateFollowup } from "../lib/evaluate";
 import { buildSession, saveReport, getProfile } from "../lib/store";
 
 const DURATION = 180;
@@ -41,6 +42,9 @@ export default function Interview() {
   const [spark, setSpark] = useState([]);
   const [signals, setSignals] = useState({});
   const [speechLive, setSpeechLive] = useState({ supported: true, wpm: 0, fillers: 0 });
+  const [adaptive, setAdaptive] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const followupsRef = useRef(0);
 
   // camera + models
   useEffect(() => {
@@ -112,6 +116,7 @@ export default function Interview() {
 
   function start() {
     scoringRef.current = createScoring();
+    followupsRef.current = 0;
     const qs = buildSession();
     setQuestions(qs);
     setQIndex(0);
@@ -125,15 +130,45 @@ export default function Interview() {
     rafRef.current = requestAnimationFrame(loop);
   }
 
-  function next() {
-    setQIndex((i) => {
-      const n = Math.min(i + 1, questions.length - 1);
-      if (n !== i) {
-        beginQuestion(scoringRef.current, n, questions[n]);
-        speechRef.current?.setQuestion(n);
+  function currentTranscript() {
+    const segs = speechRef.current?.state?.segments || [];
+    return segs
+      .filter((seg) => seg.q === qIndex)
+      .map((seg) => seg.text)
+      .join(" ")
+      .trim();
+  }
+
+  async function next() {
+    if (generating) return;
+    let qs = questions;
+
+    // Adaptive mode: if the last answer has enough substance, ask the LLM
+    // for a probing follow-up and insert it as the next question.
+    if (adaptive && followupsRef.current < 4) {
+      const t = currentTranscript();
+      if (t.split(/\s+/).length >= 20) {
+        setGenerating(true);
+        const fq = await generateFollowup(questions[qIndex], t);
+        setGenerating(false);
+        if (fq) {
+          followupsRef.current += 1;
+          qs = [
+            ...questions.slice(0, qIndex + 1),
+            "\u21b3 " + fq,
+            ...questions.slice(qIndex + 1),
+          ];
+          setQuestions(qs);
+        }
       }
-      return n;
-    });
+    }
+
+    const n = Math.min(qIndex + 1, qs.length - 1);
+    if (n !== qIndex) {
+      setQIndex(n);
+      beginQuestion(scoringRef.current, n, qs[n]);
+      speechRef.current?.setQuestion(n);
+    }
   }
 
   function finish() {
@@ -248,13 +283,27 @@ export default function Interview() {
             {/* controls */}
             <div style={{ display: "flex", gap: 10, padding: "14px 6px 6px" }}>
               {!live ? (
-                <button className="btn btn-brass" style={{ flex: 1, padding: 15 }} onClick={start} disabled={phase !== "ready"}>
-                  {phase === "loading" ? "Loading models…" : "Begin interview"}
-                </button>
+                <>
+                  <button className="btn btn-brass" style={{ flex: 1, padding: 15 }} onClick={start} disabled={phase !== "ready"}>
+                    {phase === "loading" ? "Loading models…" : "Begin interview"}
+                  </button>
+                  <button
+                    className="btn btn-ghost"
+                    style={{
+                      padding: "15px 18px",
+                      borderColor: adaptive ? "var(--glass-line-bright)" : undefined,
+                      color: adaptive ? "var(--brass-bright)" : undefined,
+                    }}
+                    onClick={() => setAdaptive((a) => !a)}
+                    title="When on, the AI interviewer asks follow-ups based on your actual answers (needs API key + Chrome mic)"
+                  >
+                    Adaptive: {adaptive ? "ON" : "OFF"}
+                  </button>
+                </>
               ) : (
                 <>
-                  <button className="btn btn-ghost" style={{ flex: 1 }} onClick={next} disabled={qIndex >= questions.length - 1}>
-                    Next question →
+                  <button className="btn btn-ghost" style={{ flex: 1 }} onClick={next} disabled={generating || (!adaptive && qIndex >= questions.length - 1)}>
+                    {generating ? "Interviewer is thinking\u2026" : "Next question \u2192"}
                   </button>
                   <button className="btn btn-brass" style={{ flex: 1 }} onClick={finish}>
                     Finish &amp; get report
