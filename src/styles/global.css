@@ -1,0 +1,345 @@
+/* ============================================================
+   ImpressAR v2 — "Mahogany Glass" design system
+   Espresso wood · film grain · glass panels · brass signature
+   Type: Fraunces (display serif) + Instrument Sans (UI)
+   ============================================================ */
+
+:root {
+  --wood-900: #150e08;
+  --wood-800: #1c130b;
+  --wood-700: #241810;
+  --brass: #c79b5b;
+  --brass-bright: #e8c98a;
+  --brass-dim: rgba(199, 155, 91, 0.35);
+  --cream: #f2e9db;
+  --cream-dim: #b6a892;
+  --sage: #7fc99a;
+  --ember: #e06a5a;
+  --glass-bg: rgba(255, 253, 248, 0.045);
+  --glass-bg-strong: rgba(255, 253, 248, 0.07);
+  --glass-line: rgba(255, 245, 228, 0.09);
+  --glass-line-bright: rgba(232, 201, 138, 0.35);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-ui: "Instrument Sans", -apple-system, sans-serif;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--cream);
+  background-color: var(--wood-900);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layered wood atmosphere ------------------------------ */
+/* grain lines + panel vignette live behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    /* vertical wood grain */
+    repeating-linear-gradient(
+      92deg,
+      rgba(0, 0, 0, 0.22) 0px,
+      rgba(0, 0, 0, 0) 3px,
+      rgba(255, 220, 170, 0.016) 6px,
+      rgba(0, 0, 0, 0.14) 11px,
+      rgba(0, 0, 0, 0) 17px
+    ),
+    /* broad plank tone shifts */
+    linear-gradient(
+      90deg,
+      var(--wood-800) 0%,
+      var(--wood-700) 22%,
+      var(--wood-800) 41%,
+      var(--wood-900) 60%,
+      var(--wood-700) 82%,
+      var(--wood-800) 100%
+    );
+}
+
+/* drifting amber lamp-glow */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      42% 34% at 28% 18%,
+      rgba(232, 178, 96, 0.13),
+      transparent 70%
+    ),
+    radial-gradient(
+      36% 30% at 78% 76%,
+      rgba(199, 155, 91, 0.08),
+      transparent 70%
+    );
+  animation: ambient-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(-2%, -1.5%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2.5%, 2%, 0) scale(1.06);
+  }
+}
+
+/* film grain */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Type -------------------------------------------------- */
+h1,
+h2,
+h3,
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Glass ------------------------------------------------- */
+.glass {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-line);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  box-shadow:
+    0 18px 40px -18px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 245, 228, 0.07);
+  transition:
+    border-color 0.35s var(--ease-spring),
+    transform 0.35s var(--ease-spring),
+    background 0.35s;
+}
+
+.glass.lift:hover {
+  transform: translateY(-4px);
+  border-color: var(--glass-line-bright);
+  background: var(--glass-bg-strong);
+}
+
+/* ---- Buttons ----------------------------------------------- */
+button {
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    transform 0.25s var(--ease-spring),
+    box-shadow 0.25s,
+    background 0.25s,
+    color 0.25s;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-brass {
+  background: linear-gradient(160deg, var(--brass-bright), var(--brass));
+  color: #1d1206;
+  box-shadow: 0 8px 24px -10px rgba(199, 155, 91, 0.55);
+}
+
+.btn-brass:hover {
+  box-shadow: 0 12px 30px -10px rgba(232, 201, 138, 0.65);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--cream);
+  border: 1px solid var(--glass-line);
+}
+
+.btn-ghost:hover {
+  border-color: var(--glass-line-bright);
+  color: var(--brass-bright);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---- Inputs ------------------------------------------------ */
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-line);
+  background: rgba(10, 6, 3, 0.45);
+  color: var(--cream);
+  font-size: 14px;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px rgba(199, 155, 91, 0.18);
+}
+
+::placeholder {
+  color: rgba(182, 168, 146, 0.55);
+}
+
+/* ---- Layout helpers ---------------------------------------- */
+.page {
+  min-height: 100vh;
+  padding: 0 clamp(20px, 5vw, 64px) 72px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.logo .mark {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: linear-gradient(140deg, var(--brass-bright), var(--brass));
+  box-shadow: 0 0 14px rgba(232, 201, 138, 0.5);
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.logo em {
+  font-style: italic;
+  color: var(--brass-bright);
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+}
+
+/* status pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--glass-line);
+  background: rgba(10, 6, 3, 0.35);
+  transition: color 0.4s, border-color 0.4s;
+}
+
+.pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.pill.good {
+  color: var(--sage);
+  border-color: rgba(127, 201, 154, 0.35);
+}
+
+.pill.bad {
+  color: var(--ember);
+  border-color: rgba(224, 106, 90, 0.4);
+}
+
+.pill.idle {
+  color: var(--cream-dim);
+}
+
+/* generic fade-up entrance (JS adds .in) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(199, 155, 91, 0.25);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
