@@ -11,11 +11,13 @@ try {
   }
 } catch { /* no .env — fine */ }
 import evaluateHandler from "../api/evaluate.js";
+import followupHandler from "../api/followup.js";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
 app.post("/api/evaluate", (req, res) => evaluateHandler(req, res));
+app.post("/api/followup", (req, res) => followupHandler(req, res));
 
 const port = process.env.PORT || 8787;
 app.listen(port, () => {
